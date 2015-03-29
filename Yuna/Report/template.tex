@@ -1,0 +1,165 @@
+\documentclass[11pt]{article}
+
+%formating author affiliation
+\usepackage{authblk}
+\author[1]{Wenshuai Ye}
+\author[1]{Danyang Chen}
+\author[1]{Wenwan Yang}
+\affil[1]{Department of Computational Science and Engineering}
+
+% change document font family to Palatino, and code font to Courier
+\usepackage{mathpazo} % add possibly `sc` and `osf` options
+\usepackage{eulervm}
+\usepackage{courier}
+%allow formula formatting
+
+%identation in nested enumerates
+\usepackage[shortlabels]{enumitem}
+\setlist[enumerate,1]{leftmargin=1cm} % level 1 list
+\setlist[enumerate,2]{leftmargin=2cm} % level 2 list
+
+%flush align equations to left, this also loads amsmath 
+\usepackage[fleqn]{mathtools}
+\usepackage{amsthm}
+\DeclareMathAlphabet\mathbfcal{OMS}{cmsy}{b}{n}
+\usepackage{comment}
+
+%declare math symbolz
+%# inner product
+\DeclarePairedDelimiter{\inner}{\langle}{\rangle}
+
+%declare argmin
+\newcommand{\argmin}{\operatornamewithlimits{argmin}}
+
+%declare checkmark
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+%title positon
+\usepackage{titling} %fix title
+\setlength{\droptitle}{-6em}   % Move up the title 
+
+%change section title font size
+\usepackage{titlesec} 
+\titleformat{\section}
+  {\normalfont\fontsize{12}{15}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\fontsize{12}{13}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\fontsize{12}{13}}{\thesubsubsection}{1em}{}
+
+%overwrite bfseries to allow formula in section title  
+\def\bfseries{\fontseries \bfdefault \selectfont \boldmath}
+
+% change page margin
+\usepackage[margin=0.8 in]{geometry} 
+
+%disable indentation
+\setlength\parindent{0pt}
+
+%allow inserting multiple graphs
+\usepackage{graphicx}
+\usepackage[skip=1pt]{subcaption}
+\usepackage[justification=centering,font=small]{caption}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}%indep sign
+
+%allow code chunks
+\usepackage{listings}
+%\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+\lstset{frame=lrbt,xleftmargin=\fboxsep, xrightmargin=-\fboxsep}
+\lstset{language=R, commentstyle=\bfseries, 
+keywordstyle=\ttfamily} %R-related formatting
+\lstset{escapeinside={<@}{@>}}
+
+%allow merged cell in tables
+\usepackage{multirow}
+
+%allow http links
+\usepackage{hyperref}
+
+%allow different font colors
+\usepackage{xcolor}
+
+%Thm and Def environment
+\theoremstyle{definition}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+
+\newenvironment{definition2}[1][Definition]{\begin{trivlist} %def without index
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
+\newenvironment{example}[1][Example]{\begin{trivlist} %def without index
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% TItle page with contents %%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{\textbf{CS 171 Data Visualization}\\ \textbf{Final Project Proposal}}
+
+\pretitle{\begin{centering}\Large}
+\posttitle{\par\end{centering}}
+
+\date{\today}
+\vspace{-10em}
+\maketitle
+\vspace{-2em}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% Formal Sections %%%%% %%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{\textbf{Background and Motivation}}
+\\With the significant increase of flights each year, more and more passengers get stuck at the airport. According the investigation in 2014, the 6 million domestic flights in US required an extra 80 million minutes to arrive at their destinations.
+
+\section{\textbf{Project Objectives}}
+The first goal of this project is to find the fastest airline on any particular route. For example, after the calculation of past years' data, the interactive may tell the passenger the average time that Delta took from New York to Seattle is 20 minutes less than the United. The second goal is to find the best and worst performing airports. For instance, the result shows that all flights flying out of New York had longer delay than flights from Joplin Regional(JLN). Taking this into consideration, we found tat which airlines are fastest relative to the distance they travel and the airports they fly into and out of. 
+
+
+\section{\textbf{Data}}
+\subsection{\textbf{Data Processing}}
+This data comes from the Bureau of Transportaion statistics(BTS).The data contain every flight flown by a major airline within the US. There are seven datasets included in this project. The first one is the ontime dataset which includes the origin\_airport\_id,origin\_airport\_seq\_id, origin\_city\_market\_id, dest\_airport\_id, dest\_airport\_seq\_id, best\_city\_market\_id. The other datasets are individual files with origin\_airport\_id, origin\_airport\_seq\_id, origin\_city\_market\_id, dest\_airport\_id, dest\_airport\_seq\_id, best\_city\_market\_id. The Airport ID is an identification number assigned by US department of Transportation to identify a unique airport.The OriginAirportSeqID is an identification number to identify a unique airport at a given point of time. Airport attributes, such as airport name or coordinates, may change over time. OriginCityMarketID is an identification number to idenfity a city market. Use this field to consolidate airports serving the same city market.
+Similar for DestiAirportID, DestAirportSeqID and DestCityMarketID.
+\subsection{\textbf{Data Visualization}}
+The first data visualization shows the US map and each airport. By clicking on the airport, Details about this airport will appear on the right which contains the information about the average delay of this airport, the airport that has connection with this airport and the flight volume of this airport. We will build a search system that allows interactive selection of airport. For the selected airport, the visualization will show the information about the airport. A barchart will be implemented in the second visualisation for the delay time distribution of each airport.
+The third visualisation will be a vertical area chart that shows the distribution of the time it shaved off a typical flight relative to other airlines over a given period.
+a table ranked by the time if shaved off a typical flight relative to other airlines over a given period. Event handler and the aggregation function will be integrated with this visualization so that it could adapt to changes in the brush selection. 
+
+
+
+\section{\textbf{Features}}
+\subsection{\textbf{Must-Have Features}}
+There data visualizations described above are features that must be implemented in this project. We would consider our project as a failure without these features. 
+\subsection{\textbf{Optional Features}}
+In the second data visualization, users have the option to visualize the data by different states.For the third visualization, we consider to add the data about the economic status of each airline and visualize the relationship between the economic status and the average delayed time.
+
+\section{\textbf{Project Schedule}}
+\\April 3rd: Project Proposal Due
+\\April 4th to April 10th: Data cleaning and Processing
+\\April 11th to April 16th: First Data Visualization
+\\April 17th: Milestone 1 Due
+\\April 20th to April 26th: Project Reviews with TFS
+\\April 18th to April 25th: Second and Third Data Visualization
+\\April 26th to April 30th: Optional Features Visualization
+\\May 1st to May 4th:Project Website and Screen-Cast
+\\May 5th: Final Project Due
+\\May 7th: Final Project Presentation
+
+
+
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
