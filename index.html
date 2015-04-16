@@ -34,8 +34,9 @@
                     <text x="50" y="50">HERE should be the US map</text>
                 </svg>
             </div>
-            <div class="col-md-4" id="barVis">
-            	<span>Airport average delay time</span>
+            <div class="col-md-4" id="barVisContainer">
+                <span>Airport average delay time (minutes):</span>
+                <div id="barVis"></div>
             </div>
         </div>
 
@@ -171,8 +172,8 @@
                             });
                         });
                     });
-                    
-                    console.log(barVisData);
+
+                    //console.log(barVisData)
 
                     initVis();
                 }
@@ -181,7 +182,7 @@
             var startHere = function(){
 
                 //TODO: load data here and call "dataLoaded" afterwards
-                queue().defer(d3.csv, 'data/fake_data.csv') // some fake data for barVis
+                queue().defer(d3.csv, 'data/avg_data_cleaned/ontime_avg_201401.csv')
                         //.defer(d3.json, '../data/MYWorld_fields.json')
                         .await(dataLoaded);
 				

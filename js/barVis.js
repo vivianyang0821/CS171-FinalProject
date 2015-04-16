@@ -12,7 +12,7 @@ BarVis = function(_parentElement, _data){
     // define "constants"
     this.margin = {top: 20, right: 10, bottom: 10, left: 10};
     this.width = 330 - this.margin.left - this.margin.right;
-    this.height = 500 - this.margin.top - this.margin.bottom;
+    this.height = this.data.length * 43 - this.margin.top - this.margin.bottom;
 
     this.initVis();
 
@@ -41,20 +41,40 @@ BarVis.prototype.initVis = function(){
 
     this.xAxis = d3.svg.axis()
         .scale(this.x)
-        //.ticks(6)
         .orient("top");
 
     this.yAxis = d3.svg.axis()
         .scale(this.y)
         .orient("left");
 
-    // Add axes visual elements
+    // add axes visual elements
     this.svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0,0)");
 
     this.svg.append("g")
         .attr("class", "y axis");
+
+    // add legend
+    this.legend = this.svg.selectAll(".legend")
+        .data(["Departure Delay", "Arrival Delay"])
+        .enter().append("g")
+        .attr("class", "legend")
+        .attr("transform", function(d, i) { return "translate(0," + (i * 20 + 5) + ")"; });
+
+    this.legend.append("rect")
+        .attr("x", this.width - 15)
+        .attr("width", 15)
+        .attr("height", 15)
+        .style("fill", this.color);
+
+    this.legend.append("text")
+        .attr("x", this.width - 20)
+        .attr("y", 10)
+        .style("text-anchor", "end")
+        .attr("font-size", "10px")
+        .attr("font-family", "sans-serif")
+        .text(function(d) { return d; });
 
     // filter, aggregate, modify data
     this.wrangleData(null);
@@ -65,7 +85,7 @@ BarVis.prototype.initVis = function(){
 
 
 /**
- * Method to wrangle the data. In this case it takes an options object
+ * Method to wrangle the data.
  * @param _filterFunction - a function that filters data or "null" if none
  */
 BarVis.prototype.wrangleData= function(_filterFunction){
@@ -82,23 +102,23 @@ BarVis.prototype.wrangleData= function(_filterFunction){
 
 
 /**
- * the drawing function - should use the D3 selection, enter, exit
+ * the drawing function
  */
 BarVis.prototype.updateVis = function(){
 
     var that = this;
 
     // updates scales
-    var bar_height = 15;
-
     var min = d3.min(that.displayData.map(function (d) {
         return d3.min([d.DEP_DELAY, d.ARR_DELAY]);
     }));
     var max = d3.max(that.displayData.map(function (d) {
         return d3.max([d.DEP_DELAY, d.ARR_DELAY]);
     }));
-
     this.x.domain([min, max]);
+
+    var bar_height = 15;
+    var group_height = 32;
 
     // updates axis
     this.svg.select(".x.axis")
@@ -117,8 +137,9 @@ BarVis.prototype.updateVis = function(){
     // Append new bar groups, if required
     var bar_enter = bar.enter().append("g");
 
-    // Append a rect and a text only for the Enter set (new g)
-    bar_enter.append("rect");
+    // Append rect and text only for the Enter set (new g)
+    bar_enter.append("rect").attr("class", "dep_bar");
+    bar_enter.append("rect").attr("class", "arr_bar");
     bar_enter.append("text");
 
     // Add click interactivity
@@ -126,33 +147,42 @@ BarVis.prototype.updateVis = function(){
         $(that.eventHandler).trigger("selectionChanged", d.type);
     })*/
 
-    // Add attributes (position) to all bars
+    // Add attributes (position) to all bar groups
     bar.attr("class", "bar")
         .transition()
-        .attr("transform", function(d, i) {return "translate(" + that.x(Math.min(0, d.DEP_DELAY)) + "," + ((bar_height + 5) * i + 5) + ")"; })
+        .attr("transform", function(d, i) {return "translate(" + that.x(0) + "," + ((group_height + 10) * i + 5) + ")"; })
 
     // Remove the extra bars
     bar.exit()
         .remove();
 
     // Update all inner rects and texts (both update and enter sets)
-    bar.selectAll("rect")
-        //.attr("x", 0)
-        //.attr("y", 0)
+    bar.selectAll(".dep_bar")
+        .attr("x", function(d) { return d.DEP_DELAY < 0 ? (that.x(d.DEP_DELAY) - that.x(0)) : 0; })
         .attr("height", bar_height)
         .style("fill", "lightblue")
         .transition()
-        .attr("width", function(d) {return Math.abs(that.x(d.DEP_DELAY)-that.x(0)); });
+        .attr("width", function(d) {return Math.abs(that.x(d.DEP_DELAY) - that.x(0)); });
+
+    bar.selectAll(".arr_bar")
+        .attr("x", function(d) { return d.ARR_DELAY < 0 ? (that.x(d.ARR_DELAY) - that.x(0)) : 0; })
+        .attr("y", bar_height + 1)
+        .attr("height", bar_height)
+        .style("fill", "lightcoral")
+        .transition()
+        .attr("width", function(d) {return Math.abs(that.x(d.ARR_DELAY) - that.x(0)); });
 
     bar.selectAll("text")
         .transition()
-        .attr("x", function(d){ return d.DEP_DELAY < 0 ? (10 + Math.abs(that.x(d.DEP_DELAY)-that.x(0))) : -10;})
-        .attr("y", 10)
+        .attr("x", function(d){
+            return (d.DEP_DELAY < 0 || d.ARR_DELAY < 0) ? (10 + Math.abs(Math.max(that.x(d.DEP_DELAY), that.x(d.ARR_DELAY)) - that.x(0))) : -10;
+        })
+        .attr("y", 20)
         .text(function(d) { return d.AIRPORT; })
         .attr("class", "label")
         .attr("font-size", "10px")
         .attr("font-family", "sans-serif")
-        .attr("text-anchor", function(d){return d.DEP_DELAY < 0 ? "start" : "end"});
+        .attr("text-anchor", function(d){return (d.DEP_DELAY < 0 || d.ARR_DELAY < 0 ) ? "start" : "end"});
 
 }
 
@@ -168,15 +198,6 @@ BarVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
     this.updateVis();
 
 }
-
-
-/*
-*
-* ==================================
-* From here on only HELPER functions
-* ==================================
-*
-* */
 
 
 /**
