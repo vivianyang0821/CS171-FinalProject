@@ -60,7 +60,7 @@ BarVis.prototype.initVis = function(){
         .data(["Departure Delay", "Arrival Delay"])
         .enter().append("g")
         .attr("class", "legend")
-        .attr("transform", function(d, i) { return "translate(0," + (i * 20 + 5) + ")"; });
+        .attr("transform", function(d, i) { return "translate(0," + (i * 20 + 205) + ")"; });
 
     this.legend.append("rect")
         .attr("x", this.width - 15)
@@ -77,7 +77,7 @@ BarVis.prototype.initVis = function(){
         .text(function(d) { return d; });
 
     // filter, aggregate, modify data
-    this.wrangleData(null);
+    this.wrangleData(0, 0);
 
     // call the update method
     this.updateVis();
@@ -88,16 +88,16 @@ BarVis.prototype.initVis = function(){
  * Method to wrangle the data.
  * @param _filterFunction - a function that filters data or "null" if none
  */
-BarVis.prototype.wrangleData= function(_filterFunction){
+//BarVis.prototype.wrangleData= function(_filterFunction){
+BarVis.prototype.wrangleData= function(_filter, _sortby){
 
-    // displayData should hold the data which is visualized
-    this.displayData = this.filterAndAggregate(_filterFunction);
+        // displayData should hold the data which is visualized
+        this.displayData = this.filterAndAggregate(_filter, _sortby);
 
-    //// you might be able to pass some options,
-    //// if you don't pass options -- set the default options
-    //// the default is: var options = {filter: function(){return true;} }
-    //var options = _options || {filter: function(){return true;}};
-
+        //// you might be able to pass some options,
+        //// if you don't pass options -- set the default options
+        //// the default is: var options = {filter: function(){return true;} }
+        //var options = _options || {filter: function(){return true;}};
 }
 
 
@@ -205,38 +205,38 @@ BarVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
  * @param _filter - A filter can be, e.g.,  a function that is only true for data of a given time range
  * @returns {Array|*}
  */
-BarVis.prototype.filterAndAggregate = function(_filter){
-
-    return this.data;
+BarVis.prototype.filterAndAggregate = function(_filter, _sortby){
 
     // Set filter to a function that accepts all items
     // ONLY if the parameter _filter is NOT null use this parameter
-    var filter = function(){return true;}
+    /*var filter = function(){return true;}
     if (_filter != null){
         filter = _filter;
     }
+    */
     //Dear JS hipster, a more hip variant of this construct would be:
     // var filter = _filter || function(){return true;}
 
     var that = this;
 
-    // create an array of values for age 0-100
-    var res = d3.range(100).map(function () {
-        return 0;
-    });
-
-    // accumulate all values that fulfill the filter criterion
-    // filters the data and sums the values
-    that.data.map(function (d){
-        if (filter(d.time)){
-            var i = 0;
-            for (i = 0; i < res.length; i += 1){
-                res[i] += d.ages[i];
-            }
+    // _sortby: 0: name, 1: dep_delay asc, 2: dep_delay desc, 3: arr_delay asc, 4: arr_delay desc
+    return this.data.sort(function(a, b){
+        if (_sortby == 0){
+            return d3.ascending(a.AIRPORT, b.AIRPORT);
+        }
+        else if (_sortby == 1){
+            return d3.ascending(a.DEP_DELAY, b.DEP_DELAY);
+        }
+        else if (_sortby == 2){
+            return d3.descending(a.DEP_DELAY, b.DEP_DELAY);
+        }
+        else if (_sortby == 3){
+            return d3.ascending(a.ARR_DELAY, b.ARR_DELAY);
+        }
+        else if (_sortby == 4){
+            return d3.descending(a.ARR_DELAY, b.ARR_DELAY);
         }
     });
-
-    return res.map(function(d,i){return {age:i, count: d}})
 
 }
 

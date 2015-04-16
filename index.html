@@ -38,7 +38,7 @@
                 <span style="font-weight: bold">Airport average delay time (minutes):</span>
                 <form id="bar_rank_by_form">
                     Sort by:
-                    <select id="bar_rank_by" name="bar_rank_by" onchange="">
+                    <select id="bar_rank_by" name="bar_rank_by" onchange="sort_bar_chart()">
                         <option value="airport" selected>Airport Name</option>
                         <option value="dep_low">Departure Delay (Low to High)</option>
                         <option value="dep_high">Departure Delay (High to Low)</option>
@@ -134,11 +134,15 @@
 
 
     <script>
-        $(function(){ // this function is called after the HTML document is fully loaded
 
-            // variables keeping global knowledge of the data
-            var allData = [];
-            var barVisData = [];
+        // variables keeping global knowledge of the data
+        var allData = [];
+        var barVisData = [];
+
+        // Vis Objects
+        var bar_vis;
+
+        $(function(){ // this function is called after the HTML document is fully loaded
 
             // this function can convert Date objects to a string
             // it can also convert strings to Date objects
@@ -152,7 +156,7 @@
                 var MyEventHandler = new Object();
 
                 //TODO: Instantiate all Vis Objects
-				var bar_vis = new BarVis(d3.select("#barVis"), barVisData);
+				bar_vis = new BarVis(d3.select("#barVis"), barVisData);
 				
                 // TODO: bind the eventHandler to the Vis Objects
                 
@@ -264,7 +268,22 @@
             }
 
             startHere();
+
         })
+
+        // function to sort the barchart of average delay time
+        function sort_bar_chart(){
+
+            // get the selected attribute to sort
+            var sort_by = d3.select("#bar_rank_by").property("selectedIndex");
+
+            // update bar chart data
+            bar_vis.wrangleData(0, sort_by);
+
+            // call the update method
+            bar_vis.updateVis();
+        }
+
     </script>
 </body>
 </html>
