@@ -107,8 +107,8 @@
 
                 //TODO: load data here and call "dataLoaded" afterwards
                 queue()
-                    .defer(d3.json, 'Wenshuai/us.json') // geojson points
-                    .defer(d3.csv, 'Wenshuai/airport.csv') // topojson polygons
+                    .defer(d3.json, 'data/us.json') // geojson points
+                    .defer(d3.csv, 'data/airport.csv') // topojson polygons
                     .await(dataLoaded);
                 
             }
