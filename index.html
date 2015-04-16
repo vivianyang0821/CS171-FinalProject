@@ -8,6 +8,7 @@
     <script src="libs/d3/d3.min.js" charset="utf-8"></script>
     <script src="libs/jquery/jquery-2.1.1.min.js" charset="utf-8"></script>
     <script src="libs/bootstrap/js/bootstrap.min.js" charset="utf-8"></script>
+    <script src="http://d3js.org/queue.v1.min.js"></script>
 
     <!--Stylesheets-->
     <link rel="stylesheet" type="text/css" href="libs/bootstrap/css/bootstrap.min.css">
@@ -15,10 +16,8 @@
     <!-- Get some nice font-->
     <link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
 
-    <!-- add own vis classes
-    <script src = "js/priovis.js"></script>
-    <script src = "js/agevis.js"></script>
-    <script src = "js/countvis.js"></script>-->
+    <!-- add own vis classes-->
+	<script src = "js/barVis.js"></script>
 
     <!-- add own stylesheet-->
     <link rel="stylesheet" type="text/css" href="css/myStyle.css">
@@ -31,26 +30,23 @@
 		<div class="row">
             <div class="col-md-8" id="mapVis">
                 <!-- TODO: delete placeholder svg element -->
-                <svg width="650" height="330" style="background-color: lightblue">
+                <svg width="750" height="330" style="background-color: lightgray">
                     <text x="50" y="50">HERE should be the US map</text>
                 </svg>
             </div>
-            <div class="col-md-3" id="barVis">
-                <!-- TODO: delete placeholder svg element -->
-                <svg width="330" height="330" style="background-color: lightcoral">
-                    <text x="50" y="50">HERE should be the bar chart of each airport’s average delay time</text>
-                </svg>
+            <div class="col-md-4" id="barVis">
+            	<span>Airport average delay time</span>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-8" id="lineVis">
                 <!-- TODO: delete placeholder svg element -->
-                <svg width="650" height="340" style="background-color: lightgreen">
+                <svg width="750" height="340" style="background-color: lightgray">
                     <text x="50" y="50">HERE should be the line chart of major airline’s average delay time</text>
                 </svg>
             </div>
-            <div class="col-md-3" id="causeVis">
+            <div class="col-md-4" id="causeVis">
                 <!-- TODO: delete placeholder svg element -->
                 <svg width="330" height="340" style="background-color: lightgray">
                     <text x="50" y="50">HERE should be the bar chart informing the cause of delay (optional)</text>
@@ -66,8 +62,8 @@
         $(function(){ // this function is called after the HTML document is fully loaded
 
             // variables keeping global knowledge of the data
-            //var allData = [];
-            //var metaData = {};
+            var allData = [];
+            var barVisData = [];
 
             // this function can convert Date objects to a string
             // it can also convert strings to Date objects
@@ -81,18 +77,102 @@
                 var MyEventHandler = new Object();
 
                 //TODO: Instantiate all Vis Objects
-
+				var bar_vis = new BarVis(d3.select("#barVis"), barVisData);
+				
                 // TODO: bind the eventHandler to the Vis Objects
                 
             }
 
-            // call this function after all data files are loaded -- error should be "null" if no error
-            var dataLoaded = function (error, _allData, _metaData) {
+            // Call this function after all data files are loaded -- error should be "null" if no error
+            var dataLoaded = function (error, _allData) {
 
                 if (!error) {
-					// TODO: do something with the data...
-                
-                    )
+                	allData = _allData;
+
+                	// Data for barVis
+                	// Aggregate monthly airline data to yearly airport data
+                	var aggregated_dep_delay = d3.nest()
+                        .key(function(d) { return d.YEAR; })
+                        .key(function(d) { return d.ORIGIN_STATE_NM; })
+                        .key(function(d) { return d.ORIGIN_CITY_NAME; })
+                        .key(function(d) { return d.ORIGIN; })                        
+                        .rollup(function(leaves) {
+                            return {
+                            	"DEP_DELAY": d3.mean(leaves, function(d){return d.DEP_DELAY})
+                            };
+                        })
+                        .entries(_allData);
+                    var aggregated_arr_delay = d3.nest()
+                        .key(function(d) { return d.YEAR; })
+                        .key(function(d) { return d.DEST_STATE_NM; })
+                        .key(function(d) { return d.DEST_CITY_NAME; })
+                        .key(function(d) { return d.DEST; })
+                        .rollup(function(leaves) {
+                            return {
+                            	"ARR_DELAY": d3.mean(leaves, function(d){return d.ARR_DELAY})
+                            };
+                        })
+                        .entries(_allData);
+                	aggregated_dep_delay.map(function(d){
+                		var year = d.key;
+                        var state;
+                        var city;
+                		d.values.map(function(d){
+                			state = d.key;
+                            d.values.map(function(d){
+                                city = d.key;
+                                d.values.map(function(d){
+                                    barVisData.push({
+                                        "YEAR": year,
+                                        "AIRPORT_STATE_NM": state,
+                                        "AIRPORT_CITY_NAME": city,
+                                        "AIRPORT": d.key,
+                                        "DEP_DELAY": d.values.DEP_DELAY,
+                                        "ARR_DELAY": 0
+                                    });
+                                })
+                            })
+                		});
+                	});
+                    aggregated_arr_delay.map(function(d){
+                        var year = d.key;
+                        var state;
+                        var city;
+                        var airport;
+                        var arr_delay;
+                        d.values.map(function(d){
+                            state = d.key;
+                            d.values.map(function(d){
+                                city = d.key;
+                                d.values.map(function(d){
+                                    airport = d.key;
+                                    arr_delay = d.values.ARR_DELAY;
+                                    var existed = 0;
+                                    barVisData.map(function(d,i){
+                                        if (d.YEAR == year && d.AIRPORT_STATE_NM == state
+                                                && d.AIRPORT_CITY_NAME == city
+                                                && d.AIRPORT == airport)
+                                        {
+                                            barVisData[i].ARR_DELAY = arr_delay;
+                                            existed = 1;
+                                        }
+                                    });
+                                    if (existed == 0){
+                                        barVisData.push({
+                                            "YEAR": year,
+                                            "AIRPORT_STATE_NM": state,
+                                            "AIRPORT_CITY_NAME": city,
+                                            "AIRPORT": d.key,
+                                            "DEP_DELAY": 0,
+                                            "ARR_DELAY": arr_delay
+                                        });
+                                    };
+                                });
+                            });
+                        });
+                    });
+                    
+                    console.log(barVisData);
 
                     initVis();
                 }
@@ -101,7 +181,10 @@
             var startHere = function(){
 
                 //TODO: load data here and call "dataLoaded" afterwards
-
+                queue().defer(d3.csv, 'data/fake_data.csv') // some fake data for barVis
+                        //.defer(d3.json, '../data/MYWorld_fields.json')
+                        .await(dataLoaded);
+				
                 
             }
 

@@ -24,3 +24,9 @@ body{
     fill-opacity: .5;
     pointer-events: none;
 }
+
+#barVis {
+    overflow: auto;
+    height: 330px;
+}
+
