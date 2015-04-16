@@ -8,6 +8,8 @@
     <script src="libs/d3/d3.min.js" charset="utf-8"></script>
     <script src="libs/jquery/jquery-2.1.1.min.js" charset="utf-8"></script>
     <script src="libs/bootstrap/js/bootstrap.min.js" charset="utf-8"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+    <script src="http://d3js.org/queue.v1.min.js"></script>
 
     <!--Stylesheets-->
     <link rel="stylesheet" type="text/css" href="libs/bootstrap/css/bootstrap.min.css">
@@ -15,10 +17,8 @@
     <!-- Get some nice font-->
     <link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
 
-    <!-- add own vis classes
-    <script src = "js/priovis.js"></script>
-    <script src = "js/agevis.js"></script>
-    <script src = "js/countvis.js"></script>-->
+    <!-- add own vis classes -->
+    <script src = "js/mapvis.js"></script>
 
     <!-- add own stylesheet-->
     <link rel="stylesheet" type="text/css" href="css/myStyle.css">
@@ -29,30 +29,27 @@
         <h1>Visualization of 2014 Domestic Flight Performance in the United States</h1>
 	
 		<div class="row">
-            <div class="col-md-7" id="mapVis">
+            <div class="col-md-8" id="mapVis">
                 <!-- TODO: delete placeholder svg element -->
-                <svg width="650" height="330" style="background-color: lightblue">
-                    <text x="50" y="50">HERE should be the US map</text>
-                </svg>
             </div>
-            <div class="col-md-4" id="barVis">
+            <div class="col-md-3" id="barVis">
                 <!-- TODO: delete placeholder svg element -->
-                <svg width="430" height="330" style="background-color: lightcoral">
+                <svg width="330" height="400" style="background-color: lightcoral">
                     <text x="50" y="50">HERE should be the bar chart of each airport’s average delay time</text>
                 </svg>
             </div>
         </div>
 
         <div class="row">
-            <div class="col-md-7" id="lineVis">
+            <div class="col-md-8" id="lineVis">
                 <!-- TODO: delete placeholder svg element -->
-                <svg width="650" height="340" style="background-color: lightgreen">
+                <svg width="750" height="340" style="background-color: lightgreen">
                     <text x="50" y="50">HERE should be the line chart of major airline’s average delay time</text>
                 </svg>
             </div>
-            <div class="col-md-4" id="causeVis">
+            <div class="col-md-3" id="causeVis">
                 <!-- TODO: delete placeholder svg element -->
-                <svg width="430" height="340" style="background-color: lightgray">
+                <svg width="330" height="340" style="background-color: lightgray">
                     <text x="50" y="50">HERE should be the bar chart informing the cause of delay (optional)</text>
                 </svg>
             </div>
@@ -66,8 +63,8 @@
         $(function(){ // this function is called after the HTML document is fully loaded
 
             // variables keeping global knowledge of the data
-            //var allData = [];
-            //var metaData = {};
+            var topomap;
+            var cityloc;
 
             // this function can convert Date objects to a string
             // it can also convert strings to Date objects
@@ -81,19 +78,27 @@
                 var MyEventHandler = new Object();
 
                 //TODO: Instantiate all Vis Objects
-
+                var map_vis = new MapVis(d3.select("#mapVis"), topomap, cityloc, MyEventHandler);
                 // TODO: bind the eventHandler to the Vis Objects
                 
             }
 
             // call this function after all data files are loaded -- error should be "null" if no error
-            var dataLoaded = function (error, _allData, _metaData) {
+            var dataLoaded = function (error, _topomap, _cityloc) {
 
                 if (!error) {
 					// TODO: do something with the data...
-                
-                    )
-
+                    cityloc = _cityloc.map(function(d){
+                        return {
+                            city: d.municipality,
+                            location: {
+                                lat: d.latitude_deg,
+                                long: d.longitude_deg
+                            }
+                        };
+                    })
+                    topomap = _topomap;
+                    
                     initVis();
                 }
             }
@@ -101,7 +106,10 @@
             var startHere = function(){
 
                 //TODO: load data here and call "dataLoaded" afterwards
-
+                queue()
+                    .defer(d3.json, 'Wenshuai/us.json') // geojson points
+                    .defer(d3.csv, 'Wenshuai/airport.csv') // topojson polygons
+                    .await(dataLoaded);
                 
             }
 
