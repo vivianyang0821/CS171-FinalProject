@@ -60,7 +60,7 @@ BarVis.prototype.initVis = function(){
         .data(["Departure Delay", "Arrival Delay"])
         .enter().append("g")
         .attr("class", "legend")
-        .attr("transform", function(d, i) { return "translate(0," + (i * 20 + 205) + ")"; });
+        .attr("transform", function(d, i) { return "translate(0," + (i * 20 + 265) + ")"; });
 
     this.legend.append("rect")
         .attr("x", this.width - 15)
@@ -77,7 +77,7 @@ BarVis.prototype.initVis = function(){
         .text(function(d) { return d; });
 
     // filter, aggregate, modify data
-    this.wrangleData(0, 0);
+    this.wrangleData('all', 0);
 
     // call the update method
     this.updateVis();
@@ -89,10 +89,10 @@ BarVis.prototype.initVis = function(){
  * @param _filterFunction - a function that filters data or "null" if none
  */
 //BarVis.prototype.wrangleData= function(_filterFunction){
-BarVis.prototype.wrangleData= function(_filter, _sortby){
+BarVis.prototype.wrangleData= function(_state_filter, _sortby){
 
         // displayData should hold the data which is visualized
-        this.displayData = this.filterAndAggregate(_filter, _sortby);
+        this.displayData = this.filterAndAggregate(_state_filter, _sortby);
 
         //// you might be able to pass some options,
         //// if you don't pass options -- set the default options
@@ -109,10 +109,10 @@ BarVis.prototype.updateVis = function(){
     var that = this;
 
     // updates scales
-    var min = d3.min(that.displayData.map(function (d) {
+    var min = d3.min(that.data.map(function (d) {
         return d3.min([d.DEP_DELAY, d.ARR_DELAY]);
     }));
-    var max = d3.max(that.displayData.map(function (d) {
+    var max = d3.max(that.data.map(function (d) {
         return d3.max([d.DEP_DELAY, d.ARR_DELAY]);
     }));
     this.x.domain([min, max]);
@@ -205,7 +205,7 @@ BarVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
  * @param _filter - A filter can be, e.g.,  a function that is only true for data of a given time range
  * @returns {Array|*}
  */
-BarVis.prototype.filterAndAggregate = function(_filter, _sortby){
+BarVis.prototype.filterAndAggregate = function(_state_filter, _sortby){
 
     // Set filter to a function that accepts all items
     // ONLY if the parameter _filter is NOT null use this parameter
@@ -219,8 +219,14 @@ BarVis.prototype.filterAndAggregate = function(_filter, _sortby){
 
     var that = this;
 
+    var _data = that.data;
+
+    if (_state_filter != "all"){
+        _data = _data.filter(function(d){return d.AIRPORT_STATE_NM == _state_filter; })
+    }
+
     // _sortby: 0: name, 1: dep_delay asc, 2: dep_delay desc, 3: arr_delay asc, 4: arr_delay desc
-    return this.data.sort(function(a, b){
+    return _data.sort(function(a, b){
         if (_sortby == 0){
             return d3.ascending(a.AIRPORT, b.AIRPORT);
         }

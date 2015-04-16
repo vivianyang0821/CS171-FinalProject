@@ -8,6 +8,7 @@
     <script src="libs/d3/d3.min.js" charset="utf-8"></script>
     <script src="libs/jquery/jquery-2.1.1.min.js" charset="utf-8"></script>
     <script src="libs/bootstrap/js/bootstrap.min.js" charset="utf-8"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
     <script src="http://d3js.org/queue.v1.min.js"></script>
 
     <!--Stylesheets-->
@@ -18,6 +19,8 @@
 
     <!-- add own vis classes-->
 	<script src = "js/barVis.js"></script>
+    <!-- add own vis classes -->
+    <script src = "js/mapvis.js"></script>
 
     <!-- add own stylesheet-->
     <link rel="stylesheet" type="text/css" href="css/myStyle.css">
@@ -29,16 +32,12 @@
 	
 		<div class="row">
             <div class="col-md-8" id="mapVis">
-                <!-- TODO: delete placeholder svg element -->
-                <svg width="750" height="330" style="background-color: lightgray">
-                    <text x="50" y="50">HERE should be the US map</text>
-                </svg>
             </div>
             <div class="col-md-4" id="barVisContainer">
                 <span style="font-weight: bold">Airport average delay time (minutes):</span>
                 <form id="bar_rank_by_form">
                     Sort by:
-                    <select id="bar_rank_by" name="bar_rank_by" onchange="sort_bar_chart()">
+                    <select id="bar_rank_by" name="bar_rank_by" onchange="update_bar_chart()">
                         <option value="airport" selected>Airport Name</option>
                         <option value="dep_low">Departure Delay (Low to High)</option>
                         <option value="dep_high">Departure Delay (High to Low)</option>
@@ -48,7 +47,7 @@
                 </form>
                 <form id="bar_state_form">
                     Select State:
-                    <select id="bar_state" name="bar_state" onchange="">
+                    <select id="bar_state" name="bar_state" onchange="update_bar_chart()">
                         <option value="all" selected>All</option>
                         <option value="AL">Alabama</option>
                         <option value="AK">Alaska</option>
@@ -121,7 +120,7 @@
                     <text x="50" y="50">HERE should be the line chart of major airline’s average delay time</text>
                 </svg>
             </div>
-            <div class="col-md-4" id="causeVis">
+            <div class="col-md-3" id="causeVis">
                 <!-- TODO: delete placeholder svg element -->
                 <svg width="330" height="340" style="background-color: lightgray">
                     <text x="50" y="50">HERE should be the bar chart informing the cause of delay (optional)</text>
@@ -143,6 +142,9 @@
         var bar_vis;
 
         $(function(){ // this function is called after the HTML document is fully loaded
+            // variables keeping global knowledge of the data
+            var topomap;
+            var cityloc;
 
             // this function can convert Date objects to a string
             // it can also convert strings to Date objects
@@ -158,21 +160,35 @@
                 //TODO: Instantiate all Vis Objects
 				bar_vis = new BarVis(d3.select("#barVis"), barVisData);
 				
+                var map_vis = new MapVis(d3.select("#mapVis"), topomap, cityloc, MyEventHandler);
+
                 // TODO: bind the eventHandler to the Vis Objects
                 
             }
 
             // Call this function after all data files are loaded -- error should be "null" if no error
-            var dataLoaded = function (error, _allData) {
+            var dataLoaded = function (error, _allData, _topomap, _cityloc) {
+                console.log("data loded");
 
                 if (!error) {
+                    cityloc = _cityloc.map(function(d){
+                        return {
+                            city: d.municipality,
+                            location: {
+                                lat: d.latitude_deg,
+                                long: d.longitude_deg
+                            }
+                        };
+                    })
+                    topomap = _topomap;
+
                 	allData = _allData;
 
                 	// Data for barVis
                 	// Aggregate monthly airline data to yearly airport data
                 	var aggregated_dep_delay = d3.nest()
                         .key(function(d) { return d.YEAR; })
-                        .key(function(d) { return d.ORIGIN_STATE_NM; })
+                        .key(function(d) { return d.ORIGIN_STATE_ABR; })
                         .key(function(d) { return d.ORIGIN_CITY_NAME; })
                         .key(function(d) { return d.ORIGIN; })                        
                         .rollup(function(leaves) {
@@ -183,7 +199,7 @@
                         .entries(_allData);
                     var aggregated_arr_delay = d3.nest()
                         .key(function(d) { return d.YEAR; })
-                        .key(function(d) { return d.DEST_STATE_NM; })
+                        .key(function(d) { return d.DEST_STATE_ABR; })
                         .key(function(d) { return d.DEST_CITY_NAME; })
                         .key(function(d) { return d.DEST; })
                         .rollup(function(leaves) {
@@ -260,11 +276,11 @@
             var startHere = function(){
 
                 //TODO: load data here and call "dataLoaded" afterwards
-                queue().defer(d3.csv, 'data/avg_data_cleaned/ontime_avg_201401.csv')
-                        //.defer(d3.json, '../data/MYWorld_fields.json')
-                        .await(dataLoaded);
-				
-                
+                queue().defer(d3.csv, 'data/avg_data_cleaned/ontime_avg_2014.csv')
+                    .defer(d3.json, 'data/us.json') // geojson points
+                    .defer(d3.csv, 'data/airport.csv') // topojson polygons
+                    .await(dataLoaded);
+
             }
 
             startHere();
@@ -272,13 +288,16 @@
         })
 
         // function to sort the barchart of average delay time
-        function sort_bar_chart(){
+        function update_bar_chart(){
 
             // get the selected attribute to sort
             var sort_by = d3.select("#bar_rank_by").property("selectedIndex");
 
+            // get the selected state
+            var selected_state = d3.select("#bar_state").property("value");
+
             // update bar chart data
-            bar_vis.wrangleData(0, sort_by);
+            bar_vis.wrangleData(selected_state, sort_by);
 
             // call the update method
             bar_vis.updateVis();
