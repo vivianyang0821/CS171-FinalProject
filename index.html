@@ -20,8 +20,8 @@
 
     <!-- add own vis classes-->
 	<script src = "js/barVis.js"></script>
-    <!-- add own vis classes -->
     <script src = "js/mapvis.js"></script>
+    <script src = "js/lineVis.js"></script>
 
     <!-- add own stylesheet-->
     <link rel="stylesheet" type="text/css" href="css/myStyle.css">
@@ -116,13 +116,24 @@
 
         <div class="row">
             <div class="col-md-8" id="lineVis">
-                <span style="font-weight: bold">Airline average delay time (minutes):</span>
-                <svg id="lineVisSvg" width="750" height="340"></svg>
+                <span style="font-weight: bold">Airline average delay time (minutes)</span>
+                <div>
+                    <strong>Encoded lines by:</strong>
+                    <input id="encode" type="radio" name="encode" value="departure" onclick=""> Departure Delay </input>
+                    <input id="encode" type="radio" name="encode" value="arrival" onclick=""> Arrival Delay </input></br>
+                    <input id="encode" type="radio" name="encode" value="carrier" onclick=""> Carrier Delay </input>
+                    <input id="encode" type="radio" name="encode" value="weather" onclick=""> Weather Delay </input>
+                    <input id="encode" type="radio" name="encode" value="nas" onclick=""> Nas Delay </input>
+                    <input id="encode" type="radio" name="encode" value="security" onclick=""> Security Delay </input>
+                    <input id="encode" type="radio" name="encode" value="late" onclick=""> Late Aircraft Delay </input>
+                    <input id="encode" type="radio" name="encode" value="total" onclick=""> Total Delay</input>
+                </div>
+                <!-- <svg id="lineVisSvg" width="750" height="300"></svg> -->
             </div>
             <div class="col-md-3" id="causeVis">
                 <!-- TODO: delete placeholder svg element -->
                 <svg width="330" height="340" style="background-color: lightgray">
-                    <text x="50" y="50">HERE should be the bar chart informing the cause of delay (optional)</text>
+                    <text x="10" y="50">HERE should be the cause of delay (optional)</text>
                 </svg>
             </div>
 
@@ -142,13 +153,9 @@
 
         $(function(){ // this function is called after the HTML document is fully loaded
             // variables keeping global knowledge of the data
-            var topomap;
-            var cityloc;
-
-            // this function can convert Date objects to a string
-            // it can also convert strings to Date objects
-            // see: https://github.com/mbostock/d3/wiki/Time-Formatting
-            var dateFormatter = d3.time.format("%Y-%m-%d");
+            var topomap; // data for map
+            var cityloc; // data for map
+            var airlines = {}; // data for line chart
 
             // call this function after Data is loaded, reformatted and bound to the variables
             var initVis = function(){
@@ -156,20 +163,20 @@
                 // Create an eventHandler
                 var MyEventHandler = new Object();
 
-                //TODO: Instantiate all Vis Objects
+                // Instantiate all Vis Objects
 				bar_vis = new BarVis(d3.select("#barVis"), barVisData);
-				
                 var map_vis = new MapVis(d3.select("#mapVis"), topomap, cityloc, MyEventHandler);
+                var line_vis = new LineVis(d3.select("#lineVis"), airlines);
 
                 // TODO: bind the eventHandler to the Vis Objects
                 
             }
 
             // Call this function after all data files are loaded -- error should be "null" if no error
-            var dataLoaded = function (error, _allData, _topomap, _cityloc) {
-                console.log("data loded");
+            var dataLoaded = function (error, _allData, _topomap, _cityloc, _linechartdata) {
 
                 if (!error) {
+                    // process map data
                     cityloc = _cityloc.map(function(d){
                         return {
                             city: d.municipality,
@@ -181,6 +188,38 @@
                     })
                     topomap = _topomap;
 
+                    // process line chart data
+                    _linechartdata.map(function(d){
+                        if (d.UNIQUE_CARRIER in airlines){
+                            airlines[d.UNIQUE_CARRIER].push({
+                                "dep_delay": d.DEP_DELAY,
+                                "arr_delay": d.ARR_DELAY,
+                                "carrier_delay": d.CARRIER_DELAY,
+                                "weather_delay": d.WEATHER_DELAY,
+                                "nas_delay":d.NAS_DELAY,
+                                "security_delay":d.SECURITY_DELAY,
+                                "late_aircraft_delay": d.LATE_AIRCRAFT_DELAY,
+                                "total_delay":d.TOTAL_DELAY,
+                                "month": d.MONTH
+                            })
+                        }
+                        else{
+                            airlines[d.UNIQUE_CARRIER] = [{
+                                "dep_delay": d.DEP_DELAY,
+                                "arr_delay": d.ARR_DELAY,
+                                "carrier_delay": d.CARRIER_DELAY,
+                                "weather_delay": d.WEATHER_DELAY,
+                                "nas_delay":d.NAS_DELAY,
+                                "security_delay":d.SECURITY_DELAY,
+                                "late_aircraft_delay": d.LATE_AIRCRAFT_DELAY,
+                                "total_delay":d.TOTAL_DELAY,
+                                "month": d.MONTH
+                            }]
+                        }
+
+                    })
+
+                    // process bar chart data
                 	allData = _allData;
 
                 	// Data for barVis
@@ -267,6 +306,7 @@
                     });
 
                     //console.log(barVisData)
+                    console.log("data loded");
 
                     initVis();
                 }
@@ -274,10 +314,11 @@
 
             var startHere = function(){
 
-                //TODO: load data here and call "dataLoaded" afterwards
+                // load data here and call "dataLoaded" afterwards
                 queue().defer(d3.csv, 'data/avg_data_cleaned/ontime_avg_2014.csv')
                     .defer(d3.json, 'data/us.json') // geojson points
                     .defer(d3.csv, 'data/airport.csv') // topojson polygons
+                    .defer(d3.csv, 'data/linechart.csv') // line chart data
                     .await(dataLoaded);
 
             }
@@ -301,673 +342,6 @@
             // call the update method
             bar_vis.updateVis();
         }
-
-        // draft function to draw the line chart
-        function InitChart() {
-            var AA = [{
-                "delay": "19.41",
-                "month": "1"
-            }, {
-                "delay": "18.23",
-                "month": "2"
-            }, {
-                "delay": "13.05",
-                "month": "3"
-            }, {
-                "delay": "9.29",
-                "month": "4"
-            }, {
-                "delay": "16.79",
-                "month": "5"
-            }, {
-                "delay": "33.27",
-                "month": "6"
-            }, {
-                "delay": "23.91",
-                "month": "7"
-            }
-                , {
-                    "delay": "23.38",
-                    "month": "8"
-                }
-                , {
-                    "delay": "10.01",
-                    "month": "9"
-                }
-                , {
-                    "delay": "16.67",
-                    "month": "10"
-                }
-                , {
-                    "delay": "15.67",
-                    "month": "11"
-                }
-                , {
-                    "delay": "25.39",
-                    "month": "12"
-                }];
-
-            var AS = [{
-                "delay": "-2.39",
-                "month": "1"
-            }, {
-                "delay": "-2.15",
-                "month": "2"
-            }, {
-                "delay": "-2.34",
-                "month": "3"
-            }, {
-                "delay": "-4.84",
-                "month": "4"
-            }, {
-                "delay": "-3.41",
-                "month": "5"
-            }, {
-                "delay": "2.07",
-                "month": "6"
-            }, {
-                "delay": "3.45",
-                "month": "7"
-            }, {
-                "delay": "3.03",
-                "month": "8"
-            }, {
-                "delay": "0.29",
-                "month": "9"
-            }, {
-                "delay": "-1.24",
-                "month": "10"
-            }, {
-                "delay": "-1.41",
-                "month": "11"
-            }, {
-                "delay": "4.71",
-                "month": "12"
-            }];
-
-            var B6 = [{
-                "delay": "49.29",
-                "month": "1"
-            }, {
-                "delay": "29.57",
-                "month": "2"
-            }, {
-                "delay": "12.24",
-                "month": "3"
-            }, {
-                "delay": "12.41",
-                "month": "4"
-            }, {
-                "delay": "13.37",
-                "month": "5"
-            }, {
-                "delay": "13.75",
-                "month": "6"
-            }, {
-                "delay": "36.45",
-                "month": "7"
-            }, {
-                "delay": "12.85",
-                "month": "8"
-            }, {
-                "delay": "1.26",
-                "month": "9"
-            }, {
-                "delay": "3.17",
-                "month": "10"
-            }, {
-                "delay": "6.49",
-                "month": "11"
-            }, {
-                "delay": "8.11",
-                "month": "12"
-            }];
-
-            var DL = [{
-                "delay": "35.69",
-                "month": "1"
-            }, {
-                "delay": "15.89",
-                "month": "2"
-            }, {
-                "delay": "9.66",
-                "month": "3"
-            }, {
-                "delay": "5.63",
-                "month": "4"
-            }, {
-                "delay": "7.88",
-                "month": "5"
-            }, {
-                "delay": "13.31",
-                "month": "6"
-            }, {
-                "delay": "7.49",
-                "month": "7"
-            }, {
-                "delay": "8.60",
-                "month": "8"
-            }, {
-                "delay": "4.62",
-                "month": "9"
-            }, {
-                "delay": "2.74",
-                "month": "10"
-            }, {
-                "delay": "5.34",
-                "month": "11"
-            }, {
-                "delay": "1.97",
-                "month": "12"
-            }];
-
-            var EV = [{
-                "delay": "50.56",
-                "month": "1"
-            }, {
-                "delay": "42.52",
-                "month": "2"
-            }, {
-                "delay": "26.45",
-                "month": "3"
-            }, {
-                "delay": "21.39",
-                "month": "4"
-            }, {
-                "delay": "24.50",
-                "month": "5"
-            }, {
-                "delay": "31.71",
-                "month": "6"
-            }, {
-                "delay": "21.59",
-                "month": "7"
-            }, {
-                "delay": "22.24",
-                "month": "8"
-            }, {
-                "delay": "18.54",
-                "month": "9"
-            }, {
-                "delay": "18.43",
-                "month": "10"
-            }, {
-                "delay": "12.78",
-                "month": "11"
-            }, {
-                "delay": "18.60",
-                "month": "12"
-            }];
-
-            var F9 = [{
-                "delay": "58.79",
-                "month": "1"
-            }, {
-                "delay": "39.25",
-                "month": "2"
-            }, {
-                "delay": "23.14",
-                "month": "3"
-            }, {
-                "delay": "13.91",
-                "month": "4"
-            }, {
-                "delay": "27.20",
-                "month": "5"
-            }, {
-                "delay": "31.14",
-                "month": "6"
-            }, {
-                "delay": "26.71",
-                "month": "7"
-            }, {
-                "delay": "29.08",
-                "month": "8"
-            }, {
-                "delay": "24.59",
-                "month": "9"
-            }, {
-                "delay": "13.13",
-                "month": "10"
-            }, {
-                "delay": "29.53",
-                "month": "11"
-            }, {
-                "delay": "36.75",
-                "month": "12"
-            }];
-
-            var FL = [{
-                "delay": "30.942755",
-                "month": "1"
-            }, {
-                "delay": "14.030597",
-                "month": "2"
-            }, {
-                "delay": "12.769023",
-                "month": "3"
-            }, {
-                "delay": "5.521897",
-                "month": "4"
-            }, {
-                "delay": "7.577785",
-                "month": "5"
-            }, {
-                "delay": "11.106860",
-                "month": "6"
-            }, {
-                "delay": "11.591324",
-                "month": "7"
-            }, {
-                "delay": "11.876866",
-                "month": "8"
-            }, {
-                "delay": "0.341943",
-                "month": "9"
-            }, {
-                "delay": "1.446628",
-                "month": "10"
-            }, {
-                "delay": "15.918708",
-                "month": "11"
-            }, {
-                "delay": "2.357530",
-                "month": "12"
-            }];
-
-            var HA = [{
-                "delay": "1.429777",
-                "month": "1"
-            }, {
-                "delay": "7.109451",
-                "month": "2"
-            }, {
-                "delay": "-0.811983",
-                "month": "3"
-            }, {
-                "delay": "4.216230",
-                "month": "4"
-            }, {
-                "delay": "-0.474896",
-                "month": "5"
-            }, {
-                "delay": "-1.942410",
-                "month": "6"
-            }, {
-                "delay": "6.741176",
-                "month": "7"
-            }, {
-                "delay": "6.562198",
-                "month": "8"
-            }, {
-                "delay": "10.051679",
-                "month": "9"
-            }, {
-                "delay": "7.565896",
-                "month": "10"
-            }, {
-                "delay": "3.142818",
-                "month": "11"
-            }, {
-                "delay": "12.917252",
-                "month": "12"
-            }];
-
-            var MQ = [{
-                "delay": "42.757138",
-                "month": "1"
-            }, {
-                "delay": "23.574618",
-                "month": "2"
-            }, {
-                "delay": "16.964189",
-                "month": "3"
-            }, {
-                "delay": "15.335651",
-                "month": "4"
-            }, {
-                "delay": "20.631341",
-                "month": "5"
-            }, {
-                "delay": "31.514519",
-                "month": "6"
-            }, {
-                "delay": "15.752735",
-                "month": "7"
-            }, {
-                "delay": "21.408509",
-                "month": "8"
-            }, {
-                "delay": "15.306419",
-                "month": "9"
-            }, {
-                "delay": "27.026275",
-                "month": "10"
-            }, {
-                "delay": "21.068815",
-                "month": "11"
-            }, {
-                "delay": "28.834339",
-                "month": "12"
-            }];
-
-            var OO = [{
-                "delay": "25.405255",
-                "month": "1"
-            }, {
-                "delay": "22.878703",
-                "month": "2"
-            }, {
-                "delay": "15.655966",
-                "month": "3"
-            }, {
-                "delay": "8.836047",
-                "month": "4"
-            }, {
-                "delay": "12.352896",
-                "month": "5"
-            }, {
-                "delay": "21.682515",
-                "month": "6"
-            }, {
-                "delay": "18.784129",
-                "month": "7"
-            }, {
-                "delay": "18.886769",
-                "month": "8"
-            }, {
-                "delay": "11.775920",
-                "month": "9"
-            }, {
-                "delay": "10.816466",
-                "month": "10"
-            }, {
-                "delay": "17.080994",
-                "month": "11"
-            }, {
-                "delay": "27.350476",
-                "month": "12"
-            }];
-
-            var UA = [{
-                "delay": "32.460787",
-                "month": "1"
-            }, {
-                "delay": "29.907637",
-                "month": "2"
-            }, {
-                "delay": "16.827185",
-                "month": "3"
-            }, {
-                "delay": "8.665498",
-                "month": "4"
-            }, {
-                "delay": "20.222851",
-                "month": "5"
-            }, {
-                "delay": "29.062270",
-                "month": "6"
-            }, {
-                "delay": "24.793756",
-                "month": "7"
-            }, {
-                "delay": "19.657543",
-                "month": "8"
-            }, {
-                "delay": "11.230721",
-                "month": "9"
-            }, {
-                "delay": "15.497420",
-                "month": "10"
-            }, {
-                "delay": "16.485284",
-                "month": "11"
-            }, {
-                "delay": "28.180678",
-                "month": "12"
-            }];
-
-            var VX = [{
-                "delay": "10.976397",
-                "month": "1"
-            }, {
-                "delay": "34.779819",
-                "month": "2"
-            }, {
-                "delay": "6.591125",
-                "month": "3"
-            }, {
-                "delay": "6.853262",
-                "month": "4"
-            }, {
-                "delay": "10.041802",
-                "month": "5"
-            }, {
-                "delay": "10.339296",
-                "month": "6"
-            }, {
-                "delay": "9.733769",
-                "month": "7"
-            }, {
-                "delay": "4.672256",
-                "month": "8"
-            }, {
-                "delay": "5.691800",
-                "month": "9"
-            }, {
-                "delay": "8.968092",
-                "month": "10"
-            }, {
-                "delay": "8.579461",
-                "month": "11"
-            }, {
-                "delay": "36.766334",
-                "month": "12"
-            }];
-
-            var US = [{
-                "delay": "10.208879",
-                "month": "1"
-            }, {
-                "delay": "11.919604",
-                "month": "2"
-            }, {
-                "delay": "7.323797",
-                "month": "3"
-            }, {
-                "delay": "4.433452",
-                "month": "4"
-            }, {
-                "delay": "7.232098",
-                "month": "5"
-            }, {
-                "delay": "12.620129",
-                "month": "6"
-            }, {
-                "delay": "14.519460",
-                "month": "7"
-            }, {
-                "delay": "6.616624",
-                "month": "8"
-            }, {
-                "delay": "3.035290",
-                "month": "9"
-            }, {
-                "delay": "4.021043",
-                "month": "10"
-            }, {
-                "delay": "5.303445",
-                "month": "11"
-            }, {
-                "delay": "6.407477",
-                "month": "12"
-            }];
-
-            var WN = [{
-                "delay": "41.709578",
-                "month": "1"
-            }, {
-                "delay": "23.771517",
-                "month": "2"
-            }, {
-                "delay": "24.207994",
-                "month": "3"
-            }, {
-                "delay": "22.302958",
-                "month": "4"
-            }, {
-                "delay": "27.004675",
-                "month": "5"
-            }, {
-                "delay": "33.831223",
-                "month": "6"
-            }, {
-                "delay": "31.745377",
-                "month": "7"
-            }, {
-                "delay": "21.918997",
-                "month": "8"
-            }, {
-                "delay": "13.232063",
-                "month": "9"
-            }, {
-                "delay": "12.608328",
-                "month": "10"
-            }, {
-                "delay": "12.427222",
-                "month": "11"
-            }, {
-                "delay": "23.029567",
-                "month": "12"
-            }];
-
-            var vis = d3.select("#lineVisSvg"),
-                    WIDTH = 750,
-                    HEIGHT = 340,
-                    MARGINS = {
-                        top: 20,
-                        right: 20,
-                        bottom: 20,
-                        left: 50
-                    },
-                    xScale = d3.scale.linear().range([MARGINS.left, WIDTH - MARGINS.right]).domain([1, 12]),
-                    yScale = d3.scale.linear().range([HEIGHT - MARGINS.top, MARGINS.bottom]).domain([-10, 60]),
-                    xAxis = d3.svg.axis()
-                            .scale(xScale),
-                    yAxis = d3.svg.axis()
-                            .scale(yScale)
-                            .orient("left");
-
-            vis.append("svg:g")
-                    .attr("class", "x axis")
-                    .attr("transform", "translate(0," + (HEIGHT - MARGINS.bottom) + ")")
-                    .call(xAxis);
-            vis.append("svg:g")
-                    .attr("class", "y axis")
-                    .attr("transform", "translate(" + (MARGINS.left) + ",0)")
-                    .call(yAxis);
-
-            var lineGen = d3.svg.line()
-                    .x(function(d) {
-                        return xScale(d.month);
-                    })
-                    .y(function(d) {
-                        return yScale(d.delay);
-                    })
-            //.interpolate("basis");
-
-            var colors = d3.scale.category20()
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(AA))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(AS))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(B6))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(DL))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(EV))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(F9))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(FL))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(HA))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(MQ))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(OO))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(UA))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(US))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(VX))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-            vis.append('svg:path')
-                    .attr('d', lineGen(WN))
-                    .attr('stroke', colors)
-                    .attr('stroke-width', 2)
-                    .attr('fill', 'none');
-
-
-        }
-        InitChart();
 
     </script>
 </body>
