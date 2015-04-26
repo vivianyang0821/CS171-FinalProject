@@ -164,7 +164,8 @@ MapVis.prototype.updateVis = function(){
           .attr("y1", function(d) { return d.source.y; })
           .attr("x2", function(d) { return d.target.x; })
           .attr("y2", function(d) { return d.target.y; })
-          .style("stroke","#999")
+          .style("stroke","blue")
+          .style("stroke-width",2.5)
     })
     .on("mouseout", function(){
         d3.selectAll(".link").remove();
