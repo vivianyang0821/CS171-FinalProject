@@ -142,6 +142,8 @@ MapVis.prototype.updateVis = function(){
     console.log(node)
     node.on("mouseover", function(n,i){
         var curAirport = that.displayData[i];
+        d3.select("#airportInfo").text(String(curAirport.airport));
+        d3.select("#cityInfo").text(String(curAirport.city));
         var links = curAirport.dest.map(function(d){
             if ((curAirport.airport in that.airportLoc) && (d in that.airportLoc)){
                 return {source: {'x':that.airportLoc[curAirport.airport].x, 'y': that.airportLoc[curAirport.airport].y}, 

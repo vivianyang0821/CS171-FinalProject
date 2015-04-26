@@ -29,10 +29,15 @@
 </head>
 <body>
     <div class="container">
-        <h1>Visualization of 2014 Domestic Flight Performance in the United States</h1>
-	
+        <h1><font face="verdana" color='steelblue' size = '5'>Visualization of 2014 Domestic Flight Performance in the United States</font></h1>
+	       
 		<div class="row">
             <div class="col-md-8" id="mapVis">
+                <p>
+                    <b>Current Observed Airport:  </b> <span id="airportInfo"></span>
+                    &nbsp; &nbsp; &nbsp
+                    <b>Current Observed City:  </b> <span id="cityInfo"></span>
+                </p>
             </div>
             <div class="col-md-4" id="barVisContainer">
                 <span style="font-weight: bold">Airport average delay time (minutes):</span>
@@ -150,7 +155,8 @@
 
         // Vis Objects
         var bar_vis;
-
+        d3.select("#airportInfo").text("None")
+        d3.select("#cityInfo").text("None")
         $(function(){ // this function is called after the HTML document is fully loaded
             // variables keeping global knowledge of the data
             var topomap; // data for map
