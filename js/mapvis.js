@@ -70,7 +70,7 @@ MapVis.prototype.initVis = function(){
     this.svg.append("path")
         .datum(topojson.feature(this.data, this.data.objects.cb_2013_us_nation_20m))
         .attr("d", path)
-        .style("fill", "#01DF3A")
+        .style("fill", "BlanchedAlmond")
     
     // filter, aggregate, modify data
     this.wrangleData(null);
@@ -164,7 +164,7 @@ MapVis.prototype.updateVis = function(){
           .attr("y1", function(d) { return d.source.y; })
           .attr("x2", function(d) { return d.target.x; })
           .attr("y2", function(d) { return d.target.y; })
-          .style("stroke","blue")
+          .style("stroke","Salmon")
           .style("stroke-width",2.5)
     })
     .on("mouseout", function(){

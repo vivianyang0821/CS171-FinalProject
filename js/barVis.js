@@ -37,7 +37,7 @@ BarVis.prototype.initVis = function(){
     this.x = d3.scale.linear()
         .range([0, this.width]);
 
-    this.color = d3.scale.ordinal().range(["lightblue", "lightcoral"]);
+    this.color = d3.scale.ordinal().range(["PapayaWhip ", "lightcoral"]);
 
     this.xAxis = d3.svg.axis()
         .scale(this.x)
@@ -160,7 +160,7 @@ BarVis.prototype.updateVis = function(){
     bar.selectAll(".dep_bar")
         .attr("x", function(d) { return d.DEP_DELAY < 0 ? (that.x(d.DEP_DELAY) - that.x(0)) : 0; })
         .attr("height", bar_height)
-        .style("fill", "lightblue")
+        .style("fill", "BlanchedAlmond")
         .transition()
         .attr("width", function(d) {return Math.abs(that.x(d.DEP_DELAY) - that.x(0)); });
 
@@ -168,7 +168,7 @@ BarVis.prototype.updateVis = function(){
         .attr("x", function(d) { return d.ARR_DELAY < 0 ? (that.x(d.ARR_DELAY) - that.x(0)) : 0; })
         .attr("y", bar_height + 1)
         .attr("height", bar_height)
-        .style("fill", "lightcoral")
+        .style("fill", " Salmon")
         .transition()
         .attr("width", function(d) {return Math.abs(that.x(d.ARR_DELAY) - that.x(0)); });
 
