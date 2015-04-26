@@ -70,7 +70,7 @@ MapVis.prototype.initVis = function(){
     this.svg.append("path")
         .datum(topojson.feature(this.data, this.data.objects.cb_2013_us_nation_20m))
         .attr("d", path)
-        .style("fill", "pink")
+        .style("fill", "#01DF3A")
     
     // filter, aggregate, modify data
     this.wrangleData(null);
