@@ -177,14 +177,26 @@
 
                 if (!error) {
                     // process map data
-                    cityloc = _cityloc.map(function(d){
+                    var indexRetriever = {};
+                    cityloc = _cityloc.map(function(d,i){
+                        indexRetriever[d.origin_airport] = i;
                         return {
                             city: d.municipality,
+                            airport: d.origin_airport,
                             location: {
                                 lat: d.latitude_deg,
                                 long: d.longitude_deg
-                            }
+                            },
+                            dest: []
+                            
                         };
+                    })
+                    _allData.map(function(d,i){
+                        var idx = indexRetriever[d.ORIGIN];
+                        if (idx != undefined){
+                            if (cityloc[idx].dest.indexOf(d.DEST) == -1)
+                                cityloc[idx].dest.push(d.DEST);
+                        }
                     })
                     topomap = _topomap;
 
@@ -305,9 +317,9 @@
                         });
                     });
 
+                    
                     //console.log(barVisData)
                     console.log("data loded");
-
                     initVis();
                 }
             }

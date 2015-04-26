@@ -36,6 +36,8 @@ MapVis = function(_parentElement, _data, _metaData, _eventHandler){
     this.width = 750 - this.margin.left - this.margin.right,
     this.height = 400 - this.margin.top - this.margin.bottom;
 
+    this.airportLoc = {};
+
     this.initVis();
 
 }
@@ -69,10 +71,17 @@ MapVis.prototype.initVis = function(){
         .datum(topojson.feature(this.data, this.data.objects.cb_2013_us_nation_20m))
         .attr("d", path)
         .style("fill", "pink")
-
     
     // filter, aggregate, modify data
     this.wrangleData(null);
+
+    this.displayData.map(function(d){
+        var temp = that.projection([
+          d.location.long,
+          d.location.lat
+        ]);
+        that.airportLoc[d.airport] = {'x':temp[0], 'y':temp[1]};
+    });
 
     // call the update method
     this.updateVis();
@@ -115,20 +124,50 @@ MapVis.prototype.updateVis = function(){
     // TODO: implement update graphs (D3: update, enter, exit)
     // updates scales
     var that = this;
-    this.svg.append("g")
-    .attr("class", "cities")
-    .selectAll("circle")
-    .data(this.displayData)
-  .enter().append("circle")
-    .attr("transform", function(d) {
-      return "translate(" + that.projection([
-          d.location.long,
-          d.location.lat
-        ]) + ")"
-      })
-    .attr("r", 2)
-    .attr("fill", "grey");
+    console.log(that.airportLoc)
 
+    var node = this.svg.append("g")
+        .attr("class", "cities")
+        .selectAll("circle")
+        .data(this.displayData)
+        .enter().append("circle")
+        .attr("transform", function(d) {
+          return "translate(" + that.projection([
+              d.location.long,
+              d.location.lat
+            ]) + ")"
+          })
+        .attr("r", 3)
+        .attr("fill", "grey");
+    console.log(node)
+    node.on("mouseover", function(n,i){
+        var curAirport = that.displayData[i];
+        var links = curAirport.dest.map(function(d){
+            if ((curAirport.airport in that.airportLoc) && (d in that.airportLoc)){
+                return {source: {'x':that.airportLoc[curAirport.airport].x, 'y': that.airportLoc[curAirport.airport].y}, 
+                        target: {'x':that.airportLoc[d].x, 'y': that.airportLoc[d].y}};
+            }
+            else{
+                return {source: {'x':0, 'y': 0}, 
+                        target: {'x':0, 'y': 0}};
+            }
+        })
+
+        var link = that.svg.selectAll(".link")
+                    .data(links);
+
+        link.enter().append("line")
+          .attr("class", "link")
+          .attr("x1", function(d) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; })
+          .style("stroke","#999")
+    })
+    .on("mouseout", function(){
+        d3.selectAll(".link").remove();
+    })
+    
 }
 
 
