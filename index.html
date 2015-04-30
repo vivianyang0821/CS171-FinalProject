@@ -25,7 +25,7 @@
     <link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
 
     <!-- add own vis classes-->
-	<script src = "js/barVis.js"></script>
+    <script src = "js/barVis.js"></script>
     <script src = "js/mapvis.js"></script>
     <script src = "js/lineVis.js"></script>
 
@@ -38,391 +38,382 @@
     <link rel="stylesheet" href="css/main.css">
 
     <style type="text/css">
-    .back-link a {
-        color: #4ca340;
-        text-decoration: none; 
-        border-bottom: 1px #4ca340 solid;
-    }
-    .back-link a:hover,
-    .back-link a:focus {
-        color: #408536; 
-        text-decoration: none;
-        border-bottom: 1px #408536 solid;
-    }
-    h1 {
-        height: 100%;
-        /* The html and body elements cannot have any padding or margin. */
-        margin: 0;
-        font-size: 14px;
-        font-family: 'Open Sans', sans-serif;
-        font-size: 32px;
-        margin-bottom: 3px;
-    }
-    .entry-header {
-        text-align: left;
-        margin: 0 auto 50px auto;
-        width: 80%;
-        max-width: 978px;
-        position: relative;
-        z-index: 10001;
-    }
-    #demo-content {
-        padding-top: 100px;
-    }
+        .back-link a {
+            color: #4ca340;
+            text-decoration: none;
+            border-bottom: 1px #4ca340 solid;
+        }
+        .back-link a:hover,
+        .back-link a:focus {
+            color: #408536;
+            text-decoration: none;
+            border-bottom: 1px #408536 solid;
+        }
+        h1 {
+            height: 100%;
+            /* The html and body elements cannot have any padding or margin. */
+            margin: 0;
+            font-size: 14px;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 32px;
+            margin-bottom: 3px;
+        }
+        .entry-header {
+            text-align: left;
+            margin: 0 auto 50px auto;
+            width: 80%;
+            max-width: 978px;
+            position: relative;
+            z-index: 10001;
+        }
+        #demo-content {
+            padding-top: 100px;
+        }
     </style>
 
 </head>
-<body background="img/background.jpg" class = "demo">
-    <div class="container">
-        <h1>
-            <font face="italic bold Times New Roman" color='black' size = '5'>
-                Visualization of 2014 Domestic Flight Performance in the United States
-            </font>
-            <img src="img/airplane.jpg" alt="plane" style="width:100px;height:60px">  
-        </h1>
+<!-- <body background="img/background.jpg" class = "demo"> -->
+<body class = "demo">
+<div class="container">
+    <h1>
+        <font face="italic bold Times New Roman" color='black' size = '5'>
+            Visualization of 2014 Domestic Flight Performance in the United States
+        </font>
+        <img src="img/airplane.jpg" alt="plane" style="width:100px;height:60px">
+    </h1>
 
-	    <div id="loader-wrapper">
-            <div id="loader"></div>
+    <div id="loader-wrapper">
+        <div id="loader"></div>
 
-            <div class="loader-section section-left"></div>
-            <div class="loader-section section-right"></div>
-
-        </div>
-
-		<div class="row">
-            <div class="col-md-8" id="mapVis">
-                <p>
-                    <b>Current Observed Airport:  </b> <span id="airportInfo"></span>
-                    &nbsp; &nbsp; &nbsp
-                    <b>Current Observed City:  </b> <span id="cityInfo"></span>
-                </p>
-            </div>
-            <div class="col-md-4" id="barVisContainer">
-                <span style="font-weight: bold">Airport average delay time (minutes):</span>
-                <form id="bar_rank_by_form">
-                    Sort by:
-                    <select id="bar_rank_by" name="bar_rank_by" onchange="update_bar_chart()">
-                        <option value="airport" selected>Airport Name</option>
-                        <option value="dep_low">Departure Delay (Low to High)</option>
-                        <option value="dep_high">Departure Delay (High to Low)</option>
-                        <option value="arr_low">Arrival Delay (Low to High)</option>
-                        <option value="arr_high">Arrival Delay (High to Low)</option>
-                    </select>
-                </form>
-                <form id="bar_state_form">
-                    Select State:
-                    <select id="bar_state" name="bar_state" onchange="update_bar_chart()">
-                        <option value="all" selected>All</option>
-                        <option value="AL">Alabama</option>
-                        <option value="AK">Alaska</option>
-                        <option value="AZ">Arizona</option>
-                        <option value="AR">Arkansas</option>
-                        <option value="CA">California</option>
-                        <option value="CO">Colorado</option>
-                        <option value="CT">Connecticut</option>
-                        <option value="DE">Delaware</option>
-                        <option value="DC">District Of Columbia</option>
-                        <option value="FL">Florida</option>
-                        <option value="GA">Georgia</option>
-                        <option value="HI">Hawaii</option>
-                        <option value="ID">Idaho</option>
-                        <option value="IL">Illinois</option>
-                        <option value="IN">Indiana</option>
-                        <option value="IA">Iowa</option>
-                        <option value="KS">Kansas</option>
-                        <option value="KY">Kentucky</option>
-                        <option value="LA">Louisiana</option>
-                        <option value="ME">Maine</option>
-                        <option value="MD">Maryland</option>
-                        <option value="MA">Massachusetts</option>
-                        <option value="MI">Michigan</option>
-                        <option value="MN">Minnesota</option>
-                        <option value="MS">Mississippi</option>
-                        <option value="MO">Missouri</option>
-                        <option value="MT">Montana</option>
-                        <option value="NE">Nebraska</option>
-                        <option value="NV">Nevada</option>
-                        <option value="NH">New Hampshire</option>
-                        <option value="NJ">New Jersey</option>
-                        <option value="NM">New Mexico</option>
-                        <option value="NY">New York</option>
-                        <option value="NC">North Carolina</option>
-                        <option value="ND">North Dakota</option>
-                        <option value="OH">Ohio</option>
-                        <option value="OK">Oklahoma</option>
-                        <option value="OR">Oregon</option>
-                        <option value="PA">Pennsylvania</option>
-                        <option value="RI">Rhode Island</option>
-                        <option value="SC">South Carolina</option>
-                        <option value="SD">South Dakota</option>
-                        <option value="TN">Tennessee</option>
-                        <option value="TX">Texas</option>
-                        <option value="UT">Utah</option>
-                        <option value="VT">Vermont</option>
-                        <option value="VA">Virginia</option>
-                        <option value="WA">Washington</option>
-                        <option value="WV">West Virginia</option>
-                        <option value="WI">Wisconsin</option>
-                        <option value="WY">Wyoming</option>
-                        <!-- Outlying Territories
-                        <option value="AS">American Samoa</option>
-                        <option value="GU">Guam</option>
-                        <option value="MP">Northern Mariana Islands</option>
-                        <option value="PR">Puerto Rico</option>
-                        <option value="UM">United States Minor Outlying Islands</option>
-                        <option value="VI">Virgin Islands</option> -->
-                    </select>
-                </form>
-                <div id="barVis"></div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-8" id="lineVis">
-                <span style="font-weight: bold">Airline average delay time (minutes)</span>
-                <div>
-                    <strong>Encoded lines by:</strong>
-                    <input id="encode" type="radio" name="encode" value="departure" onclick=""> Departure Delay </input>
-                    <input id="encode" type="radio" name="encode" value="arrival" onclick=""> Arrival Delay </input></br>
-                    <input id="encode" type="radio" name="encode" value="carrier" onclick=""> Carrier Delay </input>
-                    <input id="encode" type="radio" name="encode" value="weather" onclick=""> Weather Delay </input>
-                    <input id="encode" type="radio" name="encode" value="nas" onclick=""> Nas Delay </input>
-                    <input id="encode" type="radio" name="encode" value="security" onclick=""> Security Delay </input>
-                    <input id="encode" type="radio" name="encode" value="late" onclick=""> Late Aircraft Delay </input>
-                    <input id="encode" type="radio" name="encode" value="total" onclick=""> Total Delay</input>
-                </div>
-                <!-- <svg id="lineVisSvg" width="750" height="300"></svg> -->
-            </div>
-            <div class="col-md-3" id="causeVis">
-                <!-- TODO: delete placeholder svg element -->
-                <svg width="330" height="340" style="background-color: lightgray">
-                    <text x="10" y="50">HERE should be the cause of delay (optional)</text>
-                </svg>
-            </div>
-
-        </div>
+        <div class="loader-section section-left"></div>
+        <div class="loader-section section-right"></div>
 
     </div>
 
+    <div class="col-md-8">
+        <div class="row" id="mapVis">
+            <p>
+                <b>Current Observed Airport:  </b> <span id="airportInfo"></span>
+                &nbsp; &nbsp; &nbsp
+                <b>Current Observed City:  </b> <span id="cityInfo"></span>
+            </p>
+        </div>
+        <div class="row" id="lineVis">
+            <span style="font-weight: bold">Airline average delay time (minutes)</span>
+            <div>
+                <strong>Encoded lines by:</strong>
+                <input id="encode" type="radio" name="encode" value="departure" onclick=""> Departure Delay </input>
+                <input id="encode" type="radio" name="encode" value="arrival" onclick=""> Arrival Delay </input></br>
+                <input id="encode" type="radio" name="encode" value="carrier" onclick=""> Carrier Delay </input>
+                <input id="encode" type="radio" name="encode" value="weather" onclick=""> Weather Delay </input>
+                <input id="encode" type="radio" name="encode" value="nas" onclick=""> Nas Delay </input>
+                <input id="encode" type="radio" name="encode" value="security" onclick=""> Security Delay </input>
+                <input id="encode" type="radio" name="encode" value="late" onclick=""> Late Aircraft Delay </input>
+                <input id="encode" type="radio" name="encode" value="total" onclick=""> Total Delay</input>
+            </div>
+            <!-- <svg id="lineVisSvg" width="750" height="300"></svg> -->
+        </div>
+    </div>
+    <div class="col-md-4" id="barVisContainer">
+        <span style="font-weight: bold">Airport average delay time (minutes):</span>
+        <form id="bar_rank_by_form">
+            Sort by:
+            <select id="bar_rank_by" name="bar_rank_by" onchange="update_bar_chart()">
+                    <option value="airport" selected>Airport Name</option>
+                    <option value="dep_low">Departure Delay (Low to High)</option>
+                    <option value="dep_high">Departure Delay (High to Low)</option>
+                    <option value="arr_low">Arrival Delay (Low to High)</option>
+                    <option value="arr_high">Arrival Delay (High to Low)</option>
+            </select>
+        </form>
+        <form id="bar_state_form">
+            Select State:
+            <select id="bar_state" name="bar_state" onchange="update_bar_chart()">
+                    <option value="all" selected>All</option>
+                    <option value="AL">Alabama</option>
+                    <option value="AK">Alaska</option>
+                    <option value="AZ">Arizona</option>
+                    <option value="AR">Arkansas</option>
+                    <option value="CA">California</option>
+                    <option value="CO">Colorado</option>
+                    <option value="CT">Connecticut</option>
+                    <option value="DE">Delaware</option>
+                    <option value="DC">District Of Columbia</option>
+                    <option value="FL">Florida</option>
+                    <option value="GA">Georgia</option>
+                    <option value="HI">Hawaii</option>
+                    <option value="ID">Idaho</option>
+                    <option value="IL">Illinois</option>
+                    <option value="IN">Indiana</option>
+                    <option value="IA">Iowa</option>
+                    <option value="KS">Kansas</option>
+                    <option value="KY">Kentucky</option>
+                    <option value="LA">Louisiana</option>
+                    <option value="ME">Maine</option>
+                    <option value="MD">Maryland</option>
+                    <option value="MA">Massachusetts</option>
+                    <option value="MI">Michigan</option>
+                    <option value="MN">Minnesota</option>
+                    <option value="MS">Mississippi</option>
+                    <option value="MO">Missouri</option>
+                    <option value="MT">Montana</option>
+                    <option value="NE">Nebraska</option>
+                    <option value="NV">Nevada</option>
+                    <option value="NH">New Hampshire</option>
+                    <option value="NJ">New Jersey</option>
+                    <option value="NM">New Mexico</option>
+                    <option value="NY">New York</option>
+                    <option value="NC">North Carolina</option>
+                    <option value="ND">North Dakota</option>
+                    <option value="OH">Ohio</option>
+                    <option value="OK">Oklahoma</option>
+                    <option value="OR">Oregon</option>
+                    <option value="PA">Pennsylvania</option>
+                    <option value="RI">Rhode Island</option>
+                    <option value="SC">South Carolina</option>
+                    <option value="SD">South Dakota</option>
+                    <option value="TN">Tennessee</option>
+                    <option value="TX">Texas</option>
+                    <option value="UT">Utah</option>
+                    <option value="VT">Vermont</option>
+                    <option value="VA">Virginia</option>
+                    <option value="WA">Washington</option>
+                    <option value="WV">West Virginia</option>
+                    <option value="WI">Wisconsin</option>
+                    <option value="WY">Wyoming</option>
+                    <!-- Outlying Territories
+                    <option value="AS">American Samoa</option>
+                    <option value="GU">Guam</option>
+                    <option value="MP">Northern Mariana Islands</option>
+                    <option value="PR">Puerto Rico</option>
+                    <option value="UM">United States Minor Outlying Islands</option>
+                    <option value="VI">Virgin Islands</option> -->
+            </select>
+        </form>
+        <div id="barVis"></div>
+    </div>
+</div>
 
-    <script>
 
+<script>
+
+    // variables keeping global knowledge of the data
+    var allData = [];
+    var barVisData = [];
+
+    // Vis Objects
+    var bar_vis;
+    d3.select("#airportInfo").text("None")
+    d3.select("#cityInfo").text("None")
+    $(function(){ // this function is called after the HTML document is fully loaded
         // variables keeping global knowledge of the data
-        var allData = [];
-        var barVisData = [];
+        var topomap; // data for map
+        var cityloc; // data for map
+        var airlines = {}; // data for line chart
 
-        // Vis Objects
-        var bar_vis;
-        d3.select("#airportInfo").text("None")
-        d3.select("#cityInfo").text("None")
-        $(function(){ // this function is called after the HTML document is fully loaded
-            // variables keeping global knowledge of the data
-            var topomap; // data for map
-            var cityloc; // data for map
-            var airlines = {}; // data for line chart
+        // call this function after Data is loaded, reformatted and bound to the variables
+        var initVis = function(){
 
-            // call this function after Data is loaded, reformatted and bound to the variables
-            var initVis = function(){
+            // Create an eventHandler
+            var MyEventHandler = new Object();
 
-                // Create an eventHandler
-                var MyEventHandler = new Object();
+            // Instantiate all Vis Objects
+            bar_vis = new BarVis(d3.select("#barVis"), barVisData);
+            var map_vis = new MapVis(d3.select("#mapVis"), topomap, cityloc, MyEventHandler);
+            var line_vis = new LineVis(d3.select("#lineVis"), airlines);
 
-                // Instantiate all Vis Objects
-				bar_vis = new BarVis(d3.select("#barVis"), barVisData);
-                var map_vis = new MapVis(d3.select("#mapVis"), topomap, cityloc, MyEventHandler);
-                var line_vis = new LineVis(d3.select("#lineVis"), airlines);
+            // TODO: bind the eventHandler to the Vis Objects
 
-                // TODO: bind the eventHandler to the Vis Objects
-                
-            }
+        }
 
-            // Call this function after all data files are loaded -- error should be "null" if no error
-            var dataLoaded = function (error, _allData, _topomap, _cityloc, _linechartdata) {
+        // Call this function after all data files are loaded -- error should be "null" if no error
+        var dataLoaded = function (error, _allData, _topomap, _cityloc, _linechartdata) {
 
-                if (!error) {
-                    // process map data
-                    var indexRetriever = {};
-                    cityloc = _cityloc.map(function(d,i){
-                        indexRetriever[d.origin_airport] = i;
-                        return {
-                            city: d.municipality,
-                            airport: d.origin_airport,
-                            location: {
-                                lat: d.latitude_deg,
-                                long: d.longitude_deg
-                            },
-                            dest: []
-                            
-                        };
-                    })
-                    _allData.map(function(d,i){
-                        var idx = indexRetriever[d.ORIGIN];
-                        if (idx != undefined){
-                            if (cityloc[idx].dest.indexOf(d.DEST) == -1)
-                                cityloc[idx].dest.push(d.DEST);
-                        }
-                    })
-                    topomap = _topomap;
+            if (!error) {
+                // process map data
+                var indexRetriever = {};
+                cityloc = _cityloc.map(function(d,i){
+                    indexRetriever[d.origin_airport] = i;
+                    return {
+                        city: d.municipality,
+                        airport: d.origin_airport,
+                        location: {
+                            lat: d.latitude_deg,
+                            long: d.longitude_deg
+                        },
+                        dest: []
 
-                    // process line chart data
-                    _linechartdata.map(function(d){
-                        if (d.UNIQUE_CARRIER in airlines){
-                            airlines[d.UNIQUE_CARRIER].push({
-                                "dep_delay": d.DEP_DELAY,
-                                "arr_delay": d.ARR_DELAY,
-                                "carrier_delay": d.CARRIER_DELAY,
-                                "weather_delay": d.WEATHER_DELAY,
-                                "nas_delay":d.NAS_DELAY,
-                                "security_delay":d.SECURITY_DELAY,
-                                "late_aircraft_delay": d.LATE_AIRCRAFT_DELAY,
-                                "total_delay":d.TOTAL_DELAY,
-                                "month": d.MONTH
-                            })
-                        }
-                        else{
-                            airlines[d.UNIQUE_CARRIER] = [{
-                                "dep_delay": d.DEP_DELAY,
-                                "arr_delay": d.ARR_DELAY,
-                                "carrier_delay": d.CARRIER_DELAY,
-                                "weather_delay": d.WEATHER_DELAY,
-                                "nas_delay":d.NAS_DELAY,
-                                "security_delay":d.SECURITY_DELAY,
-                                "late_aircraft_delay": d.LATE_AIRCRAFT_DELAY,
-                                "total_delay":d.TOTAL_DELAY,
-                                "month": d.MONTH
-                            }]
-                        }
+                    };
+                })
+                _allData.map(function(d,i){
+                    var idx = indexRetriever[d.ORIGIN];
+                    if (idx != undefined){
+                        if (cityloc[idx].dest.indexOf(d.DEST) == -1)
+                            cityloc[idx].dest.push(d.DEST);
+                    }
+                })
+                topomap = _topomap;
 
-                    })
+                // process line chart data
+                _linechartdata.map(function(d){
+                    if (d.UNIQUE_CARRIER in airlines){
+                        airlines[d.UNIQUE_CARRIER].push({
+                            "dep_delay": d.DEP_DELAY,
+                            "arr_delay": d.ARR_DELAY,
+                            "carrier_delay": d.CARRIER_DELAY,
+                            "weather_delay": d.WEATHER_DELAY,
+                            "nas_delay":d.NAS_DELAY,
+                            "security_delay":d.SECURITY_DELAY,
+                            "late_aircraft_delay": d.LATE_AIRCRAFT_DELAY,
+                            "total_delay":d.TOTAL_DELAY,
+                            "month": d.MONTH
+                        })
+                    }
+                    else{
+                        airlines[d.UNIQUE_CARRIER] = [{
+                            "dep_delay": d.DEP_DELAY,
+                            "arr_delay": d.ARR_DELAY,
+                            "carrier_delay": d.CARRIER_DELAY,
+                            "weather_delay": d.WEATHER_DELAY,
+                            "nas_delay":d.NAS_DELAY,
+                            "security_delay":d.SECURITY_DELAY,
+                            "late_aircraft_delay": d.LATE_AIRCRAFT_DELAY,
+                            "total_delay":d.TOTAL_DELAY,
+                            "month": d.MONTH
+                        }]
+                    }
 
-                    // process bar chart data
-                	allData = _allData;
+                })
 
-                	// Data for barVis
-                	// Aggregate monthly airline data to yearly airport data
-                	var aggregated_dep_delay = d3.nest()
+                // process bar chart data
+                allData = _allData;
+                console.log(_cityloc)
+
+                // Data for barVis
+                // Aggregate monthly airline data to yearly airport data
+                var aggregated_dep_delay = d3.nest()
                         .key(function(d) { return d.YEAR; })
                         .key(function(d) { return d.ORIGIN_STATE_ABR; })
                         .key(function(d) { return d.ORIGIN_CITY_NAME; })
-                        .key(function(d) { return d.ORIGIN; })                        
+                        .key(function(d) { return d.ORIGIN; })
                         .rollup(function(leaves) {
                             return {
-                            	"DEP_DELAY": d3.mean(leaves, function(d){return d.DEP_DELAY})
+                                "DEP_DELAY": d3.mean(leaves, function(d){return d.DEP_DELAY})
                             };
                         })
                         .entries(_allData);
-                    var aggregated_arr_delay = d3.nest()
+                var aggregated_arr_delay = d3.nest()
                         .key(function(d) { return d.YEAR; })
                         .key(function(d) { return d.DEST_STATE_ABR; })
                         .key(function(d) { return d.DEST_CITY_NAME; })
                         .key(function(d) { return d.DEST; })
                         .rollup(function(leaves) {
                             return {
-                            	"ARR_DELAY": d3.mean(leaves, function(d){return d.ARR_DELAY})
+                                "ARR_DELAY": d3.mean(leaves, function(d){return d.ARR_DELAY})
                             };
                         })
                         .entries(_allData);
-                	aggregated_dep_delay.map(function(d){
-                		var year = d.key;
-                        var state;
-                        var city;
-                		d.values.map(function(d){
-                			state = d.key;
+                aggregated_dep_delay.map(function(d){
+                    var year = d.key;
+                    var state;
+                    var city;
+                    d.values.map(function(d){
+                        state = d.key;
+                        d.values.map(function(d){
+                            city = d.key;
                             d.values.map(function(d){
-                                city = d.key;
-                                d.values.map(function(d){
+                                barVisData.push({
+                                    "YEAR": year,
+                                    "AIRPORT_STATE_NM": state,
+                                    "AIRPORT_CITY_NAME": city,
+                                    "AIRPORT": d.key,
+                                    "DEP_DELAY": d.values.DEP_DELAY,
+                                    "ARR_DELAY": 0
+                                });
+                            })
+                        })
+                    });
+                });
+                aggregated_arr_delay.map(function(d){
+                    var year = d.key;
+                    var state;
+                    var city;
+                    var airport;
+                    var arr_delay;
+                    d.values.map(function(d){
+                        state = d.key;
+                        d.values.map(function(d){
+                            city = d.key;
+                            d.values.map(function(d){
+                                airport = d.key;
+                                arr_delay = d.values.ARR_DELAY;
+                                var existed = 0;
+                                barVisData.map(function(d,i){
+                                    if (d.YEAR == year && d.AIRPORT_STATE_NM == state
+                                            && d.AIRPORT_CITY_NAME == city
+                                            && d.AIRPORT == airport)
+                                    {
+                                        barVisData[i].ARR_DELAY = arr_delay;
+                                        existed = 1;
+                                    }
+                                });
+                                if (existed == 0){
                                     barVisData.push({
                                         "YEAR": year,
                                         "AIRPORT_STATE_NM": state,
                                         "AIRPORT_CITY_NAME": city,
                                         "AIRPORT": d.key,
-                                        "DEP_DELAY": d.values.DEP_DELAY,
-                                        "ARR_DELAY": 0
+                                        "DEP_DELAY": 0,
+                                        "ARR_DELAY": arr_delay
                                     });
-                                })
-                            })
-                		});
-                	});
-                    aggregated_arr_delay.map(function(d){
-                        var year = d.key;
-                        var state;
-                        var city;
-                        var airport;
-                        var arr_delay;
-                        d.values.map(function(d){
-                            state = d.key;
-                            d.values.map(function(d){
-                                city = d.key;
-                                d.values.map(function(d){
-                                    airport = d.key;
-                                    arr_delay = d.values.ARR_DELAY;
-                                    var existed = 0;
-                                    barVisData.map(function(d,i){
-                                        if (d.YEAR == year && d.AIRPORT_STATE_NM == state
-                                                && d.AIRPORT_CITY_NAME == city
-                                                && d.AIRPORT == airport)
-                                        {
-                                            barVisData[i].ARR_DELAY = arr_delay;
-                                            existed = 1;
-                                        }
-                                    });
-                                    if (existed == 0){
-                                        barVisData.push({
-                                            "YEAR": year,
-                                            "AIRPORT_STATE_NM": state,
-                                            "AIRPORT_CITY_NAME": city,
-                                            "AIRPORT": d.key,
-                                            "DEP_DELAY": 0,
-                                            "ARR_DELAY": arr_delay
-                                        });
-                                    };
-                                });
+                                };
                             });
                         });
                     });
+                });
 
-                    
-                    //console.log(barVisData)
-                    console.log("data loded");
-                    initVis();
-                }
+
+                //console.log(barVisData)
+                console.log("data loded");
+                initVis();
             }
+        }
 
-            var startHere = function(){
+        var startHere = function(){
 
-                // load data here and call "dataLoaded" afterwards
-                queue().defer(d3.csv, 'data/avg_data_cleaned/ontime_avg_2014.csv')
+            // load data here and call "dataLoaded" afterwards
+            queue().defer(d3.csv, 'data/avg_data_cleaned/ontime_avg_2014.csv')
                     .defer(d3.json, 'data/us.json') // geojson points
                     .defer(d3.csv, 'data/airport.csv') // topojson polygons
                     .defer(d3.csv, 'data/linechart.csv') // line chart data
                     .await(dataLoaded);
 
-            }
-
-            startHere();
-
-        })
-
-        // function to sort the barchart of average delay time
-        function update_bar_chart(){
-
-            // get the selected attribute to sort
-            var sort_by = d3.select("#bar_rank_by").property("selectedIndex");
-
-            // get the selected state
-            var selected_state = d3.select("#bar_state").property("value");
-
-            // update bar chart data
-            bar_vis.wrangleData(selected_state, sort_by);
-
-            // call the update method
-            bar_vis.updateVis();
         }
 
-    </script>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
-    <script src="js/main.js"></script>
+        startHere();
+
+    })
+
+    // function to sort the barchart of average delay time
+    function update_bar_chart(){
+
+        // get the selected attribute to sort
+        var sort_by = d3.select("#bar_rank_by").property("selectedIndex");
+
+        // get the selected state
+        var selected_state = d3.select("#bar_state").property("value");
+
+        // update bar chart data
+        bar_vis.wrangleData(selected_state, sort_by);
+
+        // call the update method
+        bar_vis.updateVis();
+    }
+
+</script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="js/main.js"></script>
 
 </body>
 </html>
