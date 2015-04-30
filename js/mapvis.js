@@ -19,11 +19,12 @@
  * @param _metaData -- the meta-data / data description object
  * @constructor
  */
-MapVis = function(_parentElement, _data, _metaData, _eventHandler){
+MapVis = function(_parentElement, _data, _metaData, _avg_delay_data, _eventHandler){
     this.parentElement = _parentElement;
     this.eventHandler = _eventHandler;
     this.data = _data;
     this.metaData = _metaData;
+    this.avg_delay_data = _avg_delay_data;
     this.displayData = [];
 
     this.data.objects.cb_2013_us_nation_20m.geometries = 
@@ -189,6 +190,8 @@ MapVis.prototype.airportMouseOver = function (i){
     var curAirport = that.displayData[i];
     d3.select("#airportInfo").text(String(curAirport.airport));
     d3.select("#cityInfo").text(String(curAirport.city));
+    d3.select("#avgDelay").text(String(that.avg_delay_data[i].toFixed(2)))
+    d3.select("#flightVolume").text(String(0))
     var links = curAirport.dest.map(function(d){
         if ((curAirport.airport in that.airportLoc) && (d in that.airportLoc)){
             return {source: {'x':that.airportLoc[curAirport.airport].x, 'y': that.airportLoc[curAirport.airport].y},

@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
     <title>CS171 Final Project</title>
-    <meta name="description" content="Learn how to recreate the preloader from Cantina Negrar. Tutorial for a passionate front-end web developers by Petr Tichy.">
+    <meta name="description" content="CS171 Final Project - Visualization of 2014 Domestic Flight Performance in the United States.">
 
     <!--iOS -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -68,12 +68,13 @@
         z-index: 10001;
     }
     #demo-content {
-        padding-top: 200px;
+        padding-top: 100px;
     }
     </style>
 
 </head>
-<body background="img/background.jpg" class = "demo">
+<!-- <body background="img/background.jpg" class = "demo"> -->
+<body class = "demo">
     <div class="container">
         <h1>
             <font face="impact" color='black' size = '6'>
@@ -81,9 +82,11 @@
             </font>
             <img src="img/airplane1.jpg" alt="plane" style="width:100px;height:60px">  
         </h1>
-
-
-    </div>
+        <div id="loader-wrapper">
+            <div id="loader"></div>
+            <div class="loader-section section-left"></div>
+            <div class="loader-section section-right"></div>
+        </div>
 
     <div class="col-md-8">
         <div class="row" id="mapVis">
@@ -95,9 +98,13 @@
                 <input type="button" value="Enter" onclick="search_airport()">
             </form> 
             <p>
-                <b>Current Observed Airport:  </b> <span id="airportInfo"></span>
-                &nbsp; &nbsp; &nbsp
-                <b>Current Observed City:  </b> <span id="cityInfo"></span>
+                <b>Current Observed Departure Airport:  </b> <span id="airportInfo"></span>
+                &nbsp; &nbsp; &nbsp;
+                <b>Current Observed Departure City:  </b> <span id="cityInfo"></span>
+                </br>
+                <b>Average Departure Delay Minutes:  </b> <span id="avgDelay"></span>
+                &nbsp; &nbsp; &nbsp; &nbsp;
+                <b>Flight Volume:  </b> <span id="flightVolume"></span>
             </p>
         </div>
         <div class="row" id="lineVis">
@@ -124,7 +131,7 @@
         <span style="font-weight: bold">Airport average delay time (minutes):</span>
         <form id="bar_rank_by_form">
             Sort by:
-            <select id="bar_rank_by" name="bar_rank_by" onchange="update_bar_chart()">
+            <select id="bar_rank_by" name="bar_rank_by" onchange="sort_bar_chart()">
                     <option value="airport" selected>Airport Name</option>
                     <option value="dep_low">Departure Delay (Low to High)</option>
                     <option value="dep_high">Departure Delay (High to Low)</option>
@@ -134,7 +141,7 @@
         </form>
         <form id="bar_state_form">
             Select State:
-            <select id="bar_state" name="bar_state" onchange="update_bar_chart()">
+            <select id="bar_state" name="bar_state" onchange="filter_state_bar_chart()">
                     <option value="all" selected>All</option>
                     <option value="AL">Alabama</option>
                     <option value="AK">Alaska</option>
@@ -214,12 +221,15 @@
     var line_vis;
     d3.select("#airportInfo").text("None")
     d3.select("#cityInfo").text("None")
+    d3.select("#avgDelay").text("None")
+    d3.select("#flightVolume").text("None")
     $(function(){ // this function is called after the HTML document is fully loaded
         // variables keeping global knowledge of the data
         var topomap; // data for map
         var cityloc; // data for map
         var airlines = {}; // data for line chart
         var airport_list = []; // airport list to filter _allData, and will be used in barVis
+        var airport_avg_dep_delay = [] // airport average departure delay time, index should match with airport_list
 
         // call this function after Data is loaded, reformatted and bound to the variables
         var initVis = function(){
@@ -229,15 +239,13 @@
 
             // Instantiate all Vis Objects
             bar_vis = new BarVis(d3.select("#barVis"), barVisData, airport_list, MyEventHandler);
-            map_vis = new MapVis(d3.select("#mapVis"), topomap, cityloc, MyEventHandler);
+            map_vis = new MapVis(d3.select("#mapVis"), topomap, cityloc, airport_avg_dep_delay, MyEventHandler);
             line_vis = new LineVis(d3.select("#lineVis"), airlines);
 
             // bind the eventHandler to the Vis Objects
             $(MyEventHandler).bind("barMouseOver", function(event, i){
-                map_vis.airportMouseOver(i);
-            });
-            $(MyEventHandler).bind("barMouseOut", function(event){
                 map_vis.airportMouseOut();
+                map_vis.airportMouseOver(i);
             });
         }
 
@@ -385,7 +393,21 @@
                         });
                     });
                 });
-                barVisData = barVisData.filter(function(d){return airport_list.indexOf(d.AIRPORT) != -1; })
+                barVisData = barVisData.filter(function(d){return airport_list.indexOf(d.AIRPORT) != -1; });
+
+                // generate the list airport_avg_dep_delay
+                // the index should match with airport_list
+                // pre-process to save time - no need to calculate it every time when the user mouseover an airport
+                airport_list.map(function(d){
+                    var air = d;
+                    barVisData.map(function(d){
+                        if (d.AIRPORT == air){
+                            airport_avg_dep_delay.push(d.DEP_DELAY);
+                        }
+                    })
+                })
+                //console.log(airport_avg_dep_delay)
+                //console.log(airport_list)
 
                 //console.log(barVisData)
                 console.log("data loded");
@@ -409,7 +431,20 @@
     })
 
     // function to sort the barchart of average delay time
-    function update_bar_chart(){
+    function sort_bar_chart(){
+
+        // get the selected attribute to sort
+        var sort_by = d3.select("#bar_rank_by").property("selectedIndex");
+
+        // update bar chart data
+        bar_vis.sortAirports(sort_by);
+
+        // call the update method
+        bar_vis.updateVis();
+    }
+
+    // function to filter the barchart of average delay time by state
+    function filter_state_bar_chart(){
 
         // get the selected attribute to sort
         var sort_by = d3.select("#bar_rank_by").property("selectedIndex");
@@ -418,7 +453,7 @@
         var selected_state = d3.select("#bar_state").property("value");
 
         // update bar chart data
-        bar_vis.wrangleData(selected_state, sort_by);
+        bar_vis.filterByState(selected_state, sort_by);
 
         // call the update method
         bar_vis.updateVis();

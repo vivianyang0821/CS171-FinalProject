@@ -102,7 +102,7 @@ LineVis.prototype.updateVis = function(){
             compare.push(this.displayData[i].delay[j]);
         }
     }
-    console.log(compare)
+    //console.log(compare)
     var ymax = d3.max(compare)
     var ymin = d3.min(compare)-1
 
@@ -161,7 +161,7 @@ LineVis.prototype.updateVis = function(){
                 .attr("fill", "#585858")
                 .text(that.dictionary[that.displayData[parseInt(d3.select(this).attr('id'))].name]);
                 d3.select(this).style("opacity",1);
-                console.log(that.displayData)
+                //console.log(that.displayData)
 
             })
             .on('mouseout',function(){

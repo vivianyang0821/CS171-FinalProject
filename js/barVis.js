@@ -7,7 +7,7 @@
 BarVis = function(_parentElement, _data, _airport_list, _eventHandler){
     this.parentElement = _parentElement;
     this.data = _data;
-    this.displayData = [];
+    this.displayData = _data;
     this.airport_list = _airport_list;
     this.eventHandler = _eventHandler;
     this.averageDep = 0; // overall average departure delay
@@ -107,28 +107,11 @@ BarVis.prototype.initVis = function(){
         .attr("font-family", "sans-serif")
         .text(function(d) { return d; });
 
-    // filter, aggregate, modify data
-    this.wrangleData('all', 0);
+    // sort data
+    this.sortAirports(0);
 
     // call the update method
     this.updateVis();
-}
-
-
-/**
- * Method to wrangle the data.
- * @param _filterFunction - a function that filters data or "null" if none
- */
-//BarVis.prototype.wrangleData= function(_filterFunction){
-BarVis.prototype.wrangleData= function(_state_filter, _sortby){
-
-        // displayData should hold the data which is visualized
-        this.displayData = this.filterAndAggregate(_state_filter, _sortby);
-
-        //// you might be able to pass some options,
-        //// if you don't pass options -- set the default options
-        //// the default is: var options = {filter: function(){return true;} }
-        //var options = _options || {filter: function(){return true;}};
 }
 
 
@@ -193,17 +176,18 @@ BarVis.prototype.updateVis = function(){
     bar_enter.append("text");
 
     // Add mouse interactivity
-    /*bar_enter.on("click", function(d) {
-        $(that.eventHandler).trigger("selectionChanged", d.type);
-    })*/
     bar_enter
         .on("mouseover", function(d){
             var i = that.airport_list.indexOf(d.AIRPORT);
             $(that.eventHandler).trigger("barMouseOver", i);
         })
-        .on("mouseout", function(){
+        .on("click", function(d){
+            var i = that.airport_list.indexOf(d.AIRPORT);
+            $(that.eventHandler).trigger("barMouseOver", i);
+        });
+        /*.on("mouseout", function(){    ----------- cannot add mouseout if we want to keep the result of click
             $(that.eventHandler).trigger("barMouseOut");
-        })
+        });*/
 
     // Add attributes (position) to all bar groups
     bar.attr("class", "bar")
@@ -246,45 +230,44 @@ BarVis.prototype.updateVis = function(){
 
 
 /**
- * Gets called by event handler and should create new aggregated data
- * aggregation is done by the function "aggregate(filter)". Filter has to
- * be defined here.
- * @param selection
+ * Filter the airports by airport names --------- to be tested
  */
-BarVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
+BarVis.prototype.filterByAirport = function(_airport_filter, sort_by){
 
-    this.updateVis();
+    this.displayData = this.data.filter(function (d) {
+        return (_airport_filter.indexOf(d.AIRPORT) != -1);
+    });
+
+    this.sortAirports(_sort_by);
 
 }
 
 
 /**
- * The aggregate function that creates the counts for each age for a given filter.
- * @param _filter - A filter can be, e.g.,  a function that is only true for data of a given time range
- * @returns {Array|*}
+ * Filter the airports by State
  */
-BarVis.prototype.filterAndAggregate = function(_state_filter, _sortby){
+BarVis.prototype.filterByState = function(_state_filter, _sort_by){
 
-    // Set filter to a function that accepts all items
-    // ONLY if the parameter _filter is NOT null use this parameter
-    /*var filter = function(){return true;}
-    if (_filter != null){
-        filter = _filter;
+    if (_state_filter == "all"){
+        this.displayData = this.data;
     }
-    */
-    //Dear JS hipster, a more hip variant of this construct would be:
-    // var filter = _filter || function(){return true;}
-
-    var that = this;
-
-    var _data = that.data;
-
-    if (_state_filter != "all"){
-        _data = _data.filter(function(d){return d.AIRPORT_STATE_NM == _state_filter; })
+    else {
+        this.displayData = this.data.filter(function (d) {
+            return d.AIRPORT_STATE_NM == _state_filter;
+        });
     }
+
+    this.sortAirports(_sort_by);
+}
+
+
+/**
+ * Sort the airports
+ */
+BarVis.prototype.sortAirports = function(_sortby){
 
     // _sortby: 0: name, 1: dep_delay asc, 2: dep_delay desc, 3: arr_delay asc, 4: arr_delay desc
-    return _data.sort(function(a, b){
+    this.displayData.sort(function(a, b){
         if (_sortby == 0){
             return d3.ascending(a.AIRPORT, b.AIRPORT);
         }
