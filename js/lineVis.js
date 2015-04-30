@@ -7,12 +7,27 @@
 LineVis = function(_parentElement, _data){
     this.parentElement = _parentElement;
     this.data = _data;
-    this.displayData = _data;
-
+    this.displayData = [];
     // define "constants"
     this.MARGINS = {top: 20, right: 20, bottom: 20, left: 20};
     this.WIDTH = 750 - this.MARGINS.left - this.MARGINS.right;
     this.HEIGHT = 300 - this.MARGINS.top - this.MARGINS.bottom;
+    this.dictionary = {
+        "FL": "Airtran Airways",
+        "VX": "Virgin America",
+        "AA": "American Airlines",
+        "UA": "United Airlines",
+        "DL": "Delta Airlines",
+        "US": "US Airways",
+        "B6": "Jetblue Airways",
+        "MQ": "Envoy Air",
+        "EV": "ExpressJet",
+        "F9": "Frontier Airlines",
+        "WN": "Southwest Airlines",
+        "OO": "Skywest Airlines",
+        "HA": "Hawaiian Airlines",
+        "AS": "Alaska Airlines"
+    }
 
     this.initVis();
 
@@ -34,16 +49,10 @@ LineVis.prototype.initVis = function(){
         .attr("transform", "translate(" + this.MARGINS.left + "," + this.MARGINS.top + ")")
 
     // creates axis and scales
-    this.xScale = d3.scale.linear().range([this.MARGINS.left, this.WIDTH - this.MARGINS.right]).domain([1, 12]);
-
-    this.yScale = d3.scale.linear().range([this.HEIGHT - this.MARGINS.top, this.MARGINS.bottom]).domain([-10, 30]);
+    this.xScale = d3.scale.linear().range([this.MARGINS.left, this.WIDTH - this.MARGINS.right]).domain([1, 12])
 
     this.xAxis = d3.svg.axis()
             .scale(this.xScale);
-
-    this.yAxis = d3.svg.axis()
-            .scale(this.yScale)
-            .orient("left");
 
     this.colors = d3.scale.category20();
 
@@ -57,7 +66,7 @@ LineVis.prototype.initVis = function(){
         .attr("transform", "translate(" + (this.MARGINS.left) + ",0)");
 
     // filter, aggregate, modify data
-    this.wrangleData(null);
+    this.wrangleData('arr_delay');
 
     // call the update method
     this.updateVis();
@@ -87,8 +96,25 @@ LineVis.prototype.wrangleData= function(_filter){
 LineVis.prototype.updateVis = function(){
 
     var that = this;
+    var compare = [];
+    for (var i=0; i<this.displayData.length; ++i){
+        for (var j=0; j<this.displayData[i].delay.length; ++j){
+            compare.push(this.displayData[i].delay[j]);
+        }
+    }
+    console.log(compare)
+    var ymax = d3.max(compare)
+    var ymin = d3.min(compare)-1
 
+    this.yScale = d3.scale.linear().range([this.HEIGHT - this.MARGINS.top, this.MARGINS.bottom]).domain([ymin, ymax]);
+
+    this.yAxis = d3.svg.axis()
+            .scale(this.yScale)
+            .orient("left");
+
+    this.svg.selectAll("path").remove();
     // updates axis
+
     this.svg.select(".x.axis")
         .call(this.xAxis);
 
@@ -98,21 +124,50 @@ LineVis.prototype.updateVis = function(){
     // updates graph
 
     var lineGen = d3.svg.line()
-        .x(function(d) {
-            return that.xScale(d.month);
+        .x(function(d, i) {
+            return that.xScale(i+1);
         })
         .y(function(d) {
-            return that.yScale(d.dep_delay);
+            return that.yScale(d);
         });
 
-    for (var m in this.displayData){
-        this.svg.append('svg:path')
-            .attr('d', lineGen(this.displayData[m]))
+    this.line = this.svg;
+
+    for (var m = 0; m<this.displayData.length; ++m){
+        this.line.append('path')
+            .attr('id', String(m))
+            .attr('d', lineGen(this.displayData[m].delay))
             .attr('stroke', this.colors(m))
             .attr('stroke-width', 2)
-            .attr('fill', 'none');
-    }
+            .attr('fill', 'none')
+            .style("opacity",0.15)
+            .on('mouseover', function(){
+                g = that.line
+                .append("g")
+                .attr("id", "info");
 
+                g
+                .append("rect")
+                .attr("x", d3.mouse(this)[0])
+                .attr("y", d3.mouse(this)[1])
+                .attr("width", 125)
+                .attr("height", 20)
+                .attr("fill", "#F3E2A9");
+
+                g
+                .append("text")
+                .attr("x", d3.mouse(this)[0] + 10)
+                .attr("y", d3.mouse(this)[1] + 15)
+                .attr("fill", "#585858")
+                .text(that.dictionary[that.displayData[parseInt(d3.select(this).attr('id'))].name]);
+                d3.select(this).style("opacity",1);
+
+            })
+            .on('mouseout',function(){
+                d3.select(this).style("opacity",0.15);
+                d3.select("#info").remove()
+            })
+    }
 }
 
 
@@ -134,20 +189,18 @@ LineVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
  * @param _filter - A filter can be, e.g.,  a function that is only true for data of a given time range
  * @returns {Array|*}
  */
-LineVis.prototype.filterAndAggregate = function(_filter){
+LineVis.prototype.filterAndAggregate = function(_delay_filter){
+    var _data = []
 
-    return this.data;
-
-    // Set filter to a function that accepts all items
-    // ONLY if the parameter _filter is NOT null use this parameter
-    /*var filter = function(){return true;}
-     if (_filter != null){
-     filter = _filter;
-     }
-     */
-    //Dear JS hipster, a more hip variant of this construct would be:
-    // var filter = _filter || function(){return true;}
-
+    for (var m in this.data){
+        var content = {};
+        content['delay'] =  this.data[m].map(function(d){
+            return parseInt(d[_delay_filter], 10);
+        });
+        content['name'] = m;
+        _data.push(content);
+    }
+    return _data;
 }
 
 
