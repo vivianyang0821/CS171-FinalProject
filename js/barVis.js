@@ -4,10 +4,12 @@
  * @param _data -- the data array
  * @constructor
  */
-BarVis = function(_parentElement, _data){
+BarVis = function(_parentElement, _data, _airport_list, _eventHandler){
     this.parentElement = _parentElement;
     this.data = _data;
     this.displayData = [];
+    this.airport_list = _airport_list;
+    this.eventHandler = _eventHandler;
     this.averageDep = 0; // overall average departure delay
     this.averageArr = 0; // overall average arrival delay
 
@@ -190,10 +192,18 @@ BarVis.prototype.updateVis = function(){
     bar_enter.append("rect").attr("class", "arr_bar");
     bar_enter.append("text");
 
-    // Add click interactivity
+    // Add mouse interactivity
     /*bar_enter.on("click", function(d) {
         $(that.eventHandler).trigger("selectionChanged", d.type);
     })*/
+    bar_enter
+        .on("mouseover", function(d){
+            var i = that.airport_list.indexOf(d.AIRPORT);
+            $(that.eventHandler).trigger("barMouseOver", i);
+        })
+        .on("mouseout", function(){
+            $(that.eventHandler).trigger("barMouseOut");
+        })
 
     // Add attributes (position) to all bar groups
     bar.attr("class", "bar")

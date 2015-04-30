@@ -138,7 +138,6 @@
                     <option value="CO">Colorado</option>
                     <option value="CT">Connecticut</option>
                     <option value="DE">Delaware</option>
-                    <option value="DC">District Of Columbia</option>
                     <option value="FL">Florida</option>
                     <option value="GA">Georgia</option>
                     <option value="HI">Hawaii</option>
@@ -169,6 +168,7 @@
                     <option value="OK">Oklahoma</option>
                     <option value="OR">Oregon</option>
                     <option value="PA">Pennsylvania</option>
+                    <option value="PR">Puerto Rico</option>
                     <option value="RI">Rhode Island</option>
                     <option value="SC">South Carolina</option>
                     <option value="SD">South Dakota</option>
@@ -185,9 +185,10 @@
                     <option value="AS">American Samoa</option>
                     <option value="GU">Guam</option>
                     <option value="MP">Northern Mariana Islands</option>
-                    <option value="PR">Puerto Rico</option>
                     <option value="UM">United States Minor Outlying Islands</option>
-                    <option value="VI">Virgin Islands</option> -->
+                    <option value="VI">Virgin Islands</option>
+                    <option value="DC">District Of Columbia</option>
+                    -->
             </select>
         </form>
         <div id="barVis"></div>
@@ -210,6 +211,7 @@
         var topomap; // data for map
         var cityloc; // data for map
         var airlines = {}; // data for line chart
+        var airport_list = []; // airport list to filter _allData, and will be used in barVis
 
         // call this function after Data is loaded, reformatted and bound to the variables
         var initVis = function(){
@@ -218,12 +220,17 @@
             var MyEventHandler = new Object();
 
             // Instantiate all Vis Objects
-            bar_vis = new BarVis(d3.select("#barVis"), barVisData);
+            bar_vis = new BarVis(d3.select("#barVis"), barVisData, airport_list, MyEventHandler);
             var map_vis = new MapVis(d3.select("#mapVis"), topomap, cityloc, MyEventHandler);
             var line_vis = new LineVis(d3.select("#lineVis"), airlines);
 
-            // TODO: bind the eventHandler to the Vis Objects
-
+            // bind the eventHandler to the Vis Objects
+            $(MyEventHandler).bind("barMouseOver", function(event, i){
+                map_vis.airportMouseOver(i);
+            });
+            $(MyEventHandler).bind("barMouseOut", function(event){
+                map_vis.airportMouseOut();
+            });
         }
 
         // Call this function after all data files are loaded -- error should be "null" if no error
@@ -232,7 +239,6 @@
             if (!error) {
                 // process map data
                 var indexRetriever = {};
-                var airport_list = []; // get airport list to filter _allData
                 cityloc = _cityloc.map(function(d,i){
                     indexRetriever[d.origin_airport] = i;
                     airport_list.push(d.origin_airport);

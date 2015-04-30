@@ -124,7 +124,7 @@ MapVis.prototype.updateVis = function(){
     // TODO: implement update graphs (D3: update, enter, exit)
     // updates scales
     var that = this;
-    console.log(that.airportLoc)
+    //console.log(that.airportLoc)
 
     var node = this.svg.append("g")
         .attr("class", "cities")
@@ -139,36 +139,12 @@ MapVis.prototype.updateVis = function(){
           })
         .attr("r", 3)
         .attr("fill", "grey");
-    console.log(node)
+    //console.log(node)
     node.on("mouseover", function(n,i){
-        var curAirport = that.displayData[i];
-        d3.select("#airportInfo").text(String(curAirport.airport));
-        d3.select("#cityInfo").text(String(curAirport.city));
-        var links = curAirport.dest.map(function(d){
-            if ((curAirport.airport in that.airportLoc) && (d in that.airportLoc)){
-                return {source: {'x':that.airportLoc[curAirport.airport].x, 'y': that.airportLoc[curAirport.airport].y}, 
-                        target: {'x':that.airportLoc[d].x, 'y': that.airportLoc[d].y}};
-            }
-            else{
-                return {source: {'x':0, 'y': 0}, 
-                        target: {'x':0, 'y': 0}};
-            }
-        })
-
-        var link = that.svg.selectAll(".link")
-                    .data(links);
-
-        link.enter().append("line")
-          .attr("class", "link")
-          .attr("x1", function(d) { return d.source.x; })
-          .attr("y1", function(d) { return d.source.y; })
-          .attr("x2", function(d) { return d.target.x; })
-          .attr("y2", function(d) { return d.target.y; })
-          .style("stroke","Salmon")
-          .style("stroke-width",2.5)
+        that.airportMouseOver(i);
     })
     .on("mouseout", function(){
-        d3.selectAll(".link").remove();
+        that.airportMouseOut();
     })
     
 }
@@ -180,10 +156,38 @@ MapVis.prototype.updateVis = function(){
  * be defined here.
  * @param selection
  */
-MapVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
-    // TODO: call wrangle function
-    this.updateVis();
+MapVis.prototype.airportMouseOver = function (i){
+    var that = this;
 
+    var curAirport = that.displayData[i];
+    d3.select("#airportInfo").text(String(curAirport.airport));
+    d3.select("#cityInfo").text(String(curAirport.city));
+    var links = curAirport.dest.map(function(d){
+        if ((curAirport.airport in that.airportLoc) && (d in that.airportLoc)){
+            return {source: {'x':that.airportLoc[curAirport.airport].x, 'y': that.airportLoc[curAirport.airport].y},
+                target: {'x':that.airportLoc[d].x, 'y': that.airportLoc[d].y}};
+        }
+        else{
+            return {source: {'x':0, 'y': 0},
+                target: {'x':0, 'y': 0}};
+        }
+    })
+
+    var link = that.svg.selectAll(".link")
+        .data(links);
+
+    link.enter().append("line")
+        .attr("class", "link")
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; })
+        .style("stroke","Salmon")
+        .style("stroke-width",2.5)
+}
+
+MapVis.prototype.airportMouseOut = function (){
+    d3.selectAll(".link").remove();
 }
 
 
