@@ -8,6 +8,8 @@ BarVis = function(_parentElement, _data){
     this.parentElement = _parentElement;
     this.data = _data;
     this.displayData = [];
+    this.averageDep = 0; // overall average departure delay
+    this.averageArr = 0; // overall average arrival delay
 
     // define "constants"
     this.margin = {top: 20, right: 10, bottom: 10, left: 10};
@@ -26,6 +28,10 @@ BarVis.prototype.initVis = function(){
 
     var that = this; // read about the this
 
+    // compute overall average departure and arrival delay
+    this.averageDep = d3.mean(that.data, function(d){return d.DEP_DELAY;});
+    this.averageArr = d3.mean(that.data, function(d){return d.ARR_DELAY;});
+
     // constructs SVG layout
     this.svg = this.parentElement.append("svg")
         .attr("width", this.width + this.margin.left + this.margin.right)
@@ -38,6 +44,7 @@ BarVis.prototype.initVis = function(){
         .range([0, this.width]);
 
     this.color = d3.scale.ordinal().range(["Bisque", "LightBlue"]);
+    this.color_avg = d3.scale.ordinal().range(["LightSalmon", "LightSteelBlue"]);
 
     this.xAxis = d3.svg.axis()
         .scale(this.x)
@@ -69,6 +76,28 @@ BarVis.prototype.initVis = function(){
         .style("fill", this.color);
 
     this.legend.append("text")
+        .attr("x", this.width - 20)
+        .attr("y", 10)
+        .style("text-anchor", "end")
+        .attr("font-size", "10px")
+        .attr("font-family", "sans-serif")
+        .text(function(d) { return d; });
+
+    // legend for average lines
+    this.legend_average = this.svg.selectAll(".legend_avg")
+        .data(["Overall Average Departure Delay", "Overall Average Arrival Delay"])
+        .enter().append("g")
+        .attr("class", "legend_avg")
+        .attr("transform", function(d, i) { return "translate(0," + (i * 20 + 75) + ")"; });
+
+    this.legend_average.append("rect")
+        .attr("x", this.width - 15)
+        .attr("y", 6)
+        .attr("width", 15)
+        .attr("height", 1)
+        .style("fill", this.color_avg);
+
+    this.legend_average.append("text")
         .attr("x", this.width - 20)
         .attr("y", 10)
         .style("text-anchor", "end")
@@ -120,6 +149,8 @@ BarVis.prototype.updateVis = function(){
     var bar_height = 15;
     var group_height = 32;
 
+    this.svg.selectAll("line").remove();
+
     // updates axis
     this.svg.select(".x.axis")
         .call(this.xAxis);
@@ -129,6 +160,23 @@ BarVis.prototype.updateVis = function(){
         .attr("x1", this.x(0))
         .attr("x2", this.x(0))
         .attr("y2", this.height);
+
+    // draw average lines
+    this.svg.append("line")
+        .attr("class", "averageDep")
+        .attr("x1", this.x(this.averageDep))
+        .attr("x2", this.x(this.averageDep))
+        .attr("y2", this.height)
+        .style("stroke", "LightSalmon")
+        .style("stroke-dasharray", "5,5");
+
+    this.svg.append("line")
+        .attr("class", "averageArr")
+        .attr("x1", this.x(this.averageArr))
+        .attr("x2", this.x(this.averageArr))
+        .attr("y2", this.height)
+        .style("stroke", "LightSteelBlue")
+        .style("stroke-dasharray", "5,5");
 
     // updates graph
     var bar = this.svg.selectAll(".bar")
@@ -158,14 +206,14 @@ BarVis.prototype.updateVis = function(){
 
     // Update all inner rects and texts (both update and enter sets)
     bar.selectAll(".dep_bar")
-        .attr("x", function(d) { return d.DEP_DELAY < 0 ? (that.x(d.DEP_DELAY) - that.x(0)) : 0; })
+        .attr("x", function(d) { return d.DEP_DELAY < 0 ? (that.x(d.DEP_DELAY) - that.x(0)) : 1; })
         .attr("height", bar_height)
         .style("fill", "Bisque")
         .transition()
         .attr("width", function(d) {return Math.abs(that.x(d.DEP_DELAY) - that.x(0)); });
 
     bar.selectAll(".arr_bar")
-        .attr("x", function(d) { return d.ARR_DELAY < 0 ? (that.x(d.ARR_DELAY) - that.x(0)) : 0; })
+        .attr("x", function(d) { return d.ARR_DELAY < 0 ? (that.x(d.ARR_DELAY) - that.x(0)) : 1; })
         .attr("y", bar_height + 1)
         .attr("height", bar_height)
         .style("fill", "LightBlue")

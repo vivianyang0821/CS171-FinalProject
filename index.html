@@ -232,8 +232,10 @@
             if (!error) {
                 // process map data
                 var indexRetriever = {};
+                var airport_list = []; // get airport list to filter _allData
                 cityloc = _cityloc.map(function(d,i){
                     indexRetriever[d.origin_airport] = i;
+                    airport_list.push(d.origin_airport);
                     return {
                         city: d.municipality,
                         airport: d.origin_airport,
@@ -286,10 +288,8 @@
                 })
 
                 // process bar chart data
+                // filter airports
                 allData = _allData;
-                console.log(_cityloc)
-
-                // Data for barVis
                 // Aggregate monthly airline data to yearly airport data
                 var aggregated_dep_delay = d3.nest()
                         .key(function(d) { return d.YEAR; })
@@ -371,7 +371,7 @@
                         });
                     });
                 });
-
+                barVisData = barVisData.filter(function(d){return airport_list.indexOf(d.AIRPORT) != -1; })
 
                 //console.log(barVisData)
                 console.log("data loded");
