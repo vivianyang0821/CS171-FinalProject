@@ -150,6 +150,33 @@ MapVis.prototype.updateVis = function(){
 }
 
 
+MapVis.prototype.searchVis = function(){
+    var that = this;
+    
+    if ((d3.selectAll("#depInfo").property("value") in this.airportLoc) && (d3.selectAll("#arrInfo").property("value") in this.airportLoc)){
+        d3.selectAll(".link").remove();
+        var links = [{
+        source: {'x': this.airportLoc[d3.selectAll("#depInfo").property("value")].x, 
+                 'y': this.airportLoc[d3.selectAll("#depInfo").property("value")].y
+                },
+        target: {'x': this.airportLoc[d3.selectAll("#arrInfo").property("value")].x, 
+                 'y': this.airportLoc[d3.selectAll("#arrInfo").property("value")].y
+                }
+        }]
+        var link = that.svg.selectAll(".link")
+                    .data(links);
+
+        link.enter().append("line")
+          .attr("class", "link")
+          .attr("x1", function(d) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; })
+          .style("stroke","Salmon")
+          .style("stroke-width",2.5)
+    }
+}
+
 /**
  * Gets called by event handler and should create new aggregated data
  * aggregation is done by the function "aggregate(filter)". Filter has to
