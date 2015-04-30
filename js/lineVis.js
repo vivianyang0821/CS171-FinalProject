@@ -161,6 +161,7 @@ LineVis.prototype.updateVis = function(){
                 .attr("fill", "#585858")
                 .text(that.dictionary[that.displayData[parseInt(d3.select(this).attr('id'))].name]);
                 d3.select(this).style("opacity",1);
+                console.log(that.displayData)
 
             })
             .on('mouseout',function(){
