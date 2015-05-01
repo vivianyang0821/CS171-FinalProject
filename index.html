@@ -137,6 +137,7 @@
                     <option value="dep_high">Departure Delay (High to Low)</option>
                     <option value="arr_low">Arrival Delay (Low to High)</option>
                     <option value="arr_high">Arrival Delay (High to Low)</option>
+                    <option value="fl_volume">Flight Volume (High to Low)</option>
             </select>
         </form>
         <form id="bar_state_form">
@@ -230,6 +231,7 @@
         var airlines = {}; // data for line chart
         var airport_list = []; // airport list to filter _allData, and will be used in barVis
         var airport_avg_dep_delay = [] // airport average departure delay time, index should match with airport_list
+        var airport_flight_volume = [] // airport flight volume, index should match with airport_list
 
         // call this function after Data is loaded, reformatted and bound to the variables
         var initVis = function(){
@@ -239,7 +241,7 @@
 
             // Instantiate all Vis Objects
             bar_vis = new BarVis(d3.select("#barVis"), barVisData, airport_list, MyEventHandler);
-            map_vis = new MapVis(d3.select("#mapVis"), topomap, cityloc, airport_avg_dep_delay, MyEventHandler);
+            map_vis = new MapVis(d3.select("#mapVis"), topomap, cityloc, airport_avg_dep_delay, airport_flight_volume, MyEventHandler);
             line_vis = new LineVis(d3.select("#lineVis"), airlines);
 
             // bind the eventHandler to the Vis Objects
@@ -320,7 +322,8 @@
                         .key(function(d) { return d.ORIGIN; })
                         .rollup(function(leaves) {
                             return {
-                                "DEP_DELAY": d3.mean(leaves, function(d){return d.DEP_DELAY})
+                                "DEP_DELAY": d3.mean(leaves, function(d){return d.DEP_DELAY}),
+                                "FLIGHT_VOLUME": d3.sum(leaves, function(d){return d.FLIGHT_VOLUME})
                             };
                         })
                         .entries(_allData);
@@ -331,7 +334,8 @@
                         .key(function(d) { return d.DEST; })
                         .rollup(function(leaves) {
                             return {
-                                "ARR_DELAY": d3.mean(leaves, function(d){return d.ARR_DELAY})
+                                "ARR_DELAY": d3.mean(leaves, function(d){return d.ARR_DELAY}),
+                                "FLIGHT_VOLUME": d3.sum(leaves, function(d){return d.FLIGHT_VOLUME})
                             };
                         })
                         .entries(_allData);
@@ -350,7 +354,8 @@
                                     "AIRPORT_CITY_NAME": city,
                                     "AIRPORT": d.key,
                                     "DEP_DELAY": d.values.DEP_DELAY,
-                                    "ARR_DELAY": 0
+                                    "ARR_DELAY": 0,
+                                    "FLIGHT_VOLUME": d.values.FLIGHT_VOLUME
                                 });
                             })
                         })
@@ -362,6 +367,7 @@
                     var city;
                     var airport;
                     var arr_delay;
+                    var flight_volume;
                     d.values.map(function(d){
                         state = d.key;
                         d.values.map(function(d){
@@ -369,6 +375,7 @@
                             d.values.map(function(d){
                                 airport = d.key;
                                 arr_delay = d.values.ARR_DELAY;
+                                flight_volume = d.values.FLIGHT_VOLUME;
                                 var existed = 0;
                                 barVisData.map(function(d,i){
                                     if (d.YEAR == year && d.AIRPORT_STATE_NM == state
@@ -376,6 +383,7 @@
                                             && d.AIRPORT == airport)
                                     {
                                         barVisData[i].ARR_DELAY = arr_delay;
+                                        barVisData[i].FLIGHT_VOLUME += flight_volume;
                                         existed = 1;
                                     }
                                 });
@@ -386,7 +394,8 @@
                                         "AIRPORT_CITY_NAME": city,
                                         "AIRPORT": d.key,
                                         "DEP_DELAY": 0,
-                                        "ARR_DELAY": arr_delay
+                                        "ARR_DELAY": arr_delay,
+                                        "FLIGHT_VOLUME": flight_volume
                                     });
                                 };
                             });
@@ -406,9 +415,21 @@
                         }
                     })
                 })
+
+                // generate the list airport_flight_volume
+                // the index should match with airport_list
+                // pre-process to save time - no need to calculate it every time when the user mouseover an airport
+                airport_list.map(function(d){
+                    var air = d;
+                    barVisData.map(function(d){
+                        if (d.AIRPORT == air){
+                            airport_flight_volume.push(d.FLIGHT_VOLUME);
+                        }
+                    })
+                })
+
                 //console.log(airport_avg_dep_delay)
                 //console.log(airport_list)
-
                 //console.log(barVisData)
                 console.log("data loded");
                 initVis();
