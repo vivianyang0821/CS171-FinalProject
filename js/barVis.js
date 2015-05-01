@@ -266,7 +266,7 @@ BarVis.prototype.filterByState = function(_state_filter, _sort_by){
  */
 BarVis.prototype.sortAirports = function(_sortby){
 
-    // _sortby: 0: name, 1: dep_delay asc, 2: dep_delay desc, 3: arr_delay asc, 4: arr_delay desc
+    // _sortby: 0: name, 1: dep_delay asc, 2: dep_delay desc, 3: arr_delay asc, 4: arr_delay desc, 5: fl_volume desc
     this.displayData.sort(function(a, b){
         if (_sortby == 0){
             return d3.ascending(a.AIRPORT, b.AIRPORT);
@@ -282,6 +282,9 @@ BarVis.prototype.sortAirports = function(_sortby){
         }
         else if (_sortby == 4){
             return d3.descending(a.ARR_DELAY, b.ARR_DELAY);
+        }
+        else if (_sortby == 5){
+            return d3.descending(a.FLIGHT_VOLUME, b.FLIGHT_VOLUME);
         }
     });
 
