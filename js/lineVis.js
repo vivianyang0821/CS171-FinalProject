@@ -168,6 +168,7 @@ LineVis.prototype.updateVis = function(){
                 d3.select(this).style("opacity",0.15);
                 d3.select("#info").remove()
             })
+            .style("cursor", "pointer");
     }
 }
 

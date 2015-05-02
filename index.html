@@ -248,6 +248,11 @@
                 map_vis.airportMouseOut();
                 map_vis.airportMouseOver(i);
             });
+            $(MyEventHandler).bind("mapSearch", function(event, depAirport, arrAirport){
+                var sort_by = d3.select("#bar_rank_by").property("selectedIndex");
+                bar_vis.filterByAirport([depAirport, arrAirport], sort_by);
+                bar_vis.updateVis();
+            })
         }
 
         // Call this function after all data files are loaded -- error should be "null" if no error
@@ -480,8 +485,8 @@
     }
 
     function search_airport(){
-            map_vis.searchVis();
-        }
+        map_vis.searchVis();
+    }
 
     function update_line_chart(){
         var selected_delay;

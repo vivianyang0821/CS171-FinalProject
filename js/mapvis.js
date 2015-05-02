@@ -141,28 +141,50 @@ MapVis.prototype.updateVis = function(){
           })
         .attr("r", 3)
         .attr("fill", "grey");
-    //console.log(node)
+
     node.on("mouseover", function(n,i){
+        that.airportMouseOut();
         that.airportMouseOver(i);
+        var curAirport = that.displayData[i];
+        var airportList = curAirport.dest;
+        airportList.push(curAirport.airport);
+        $(that.eventHandler).trigger("mapSearch", airportList);
     })
+    /*
     .on("mouseout", function(){
         that.airportMouseOut();
     })
+    */
+    .style("cursor", "pointer");
     
 }
 
 
 MapVis.prototype.searchVis = function(){
     var that = this;
-    
-    if ((d3.selectAll("#depInfo").property("value") in this.airportLoc) && (d3.selectAll("#arrInfo").property("value") in this.airportLoc)){
+    var depInfo = d3.select("#depInfo").property("value");
+    var arrInfo = d3.select("#arrInfo").property("value")
+
+    if ((depInfo in this.airportLoc) && (arrInfo in this.airportLoc)){
         d3.selectAll(".link").remove();
+        $(that.eventHandler).trigger("mapSearch", [depInfo, arrInfo]);
+        var i;
+        that.displayData.map(function(d,j){
+            if (d.airport == depInfo) i = j;
+        })
+        var curAirport = that.displayData[i];
+
+        d3.select("#airportInfo").text(String(curAirport.airport));
+        d3.select("#cityInfo").text(String(curAirport.city));
+        d3.select("#avgDelay").text(String(that.avg_delay_data[i].toFixed(2)))
+        d3.select("#flightVolume").text(String(that.flight_volume_data[i]))
+
         var links = [{
-        source: {'x': this.airportLoc[d3.selectAll("#depInfo").property("value")].x, 
-                 'y': this.airportLoc[d3.selectAll("#depInfo").property("value")].y
+        source: {'x': this.airportLoc[depInfo].x, 
+                 'y': this.airportLoc[depInfo].y
                 },
-        target: {'x': this.airportLoc[d3.selectAll("#arrInfo").property("value")].x, 
-                 'y': this.airportLoc[d3.selectAll("#arrInfo").property("value")].y
+        target: {'x': this.airportLoc[arrInfo].x, 
+                 'y': this.airportLoc[arrInfo].y
                 }
         }]
         var link = that.svg.selectAll(".link")

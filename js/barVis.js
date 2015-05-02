@@ -232,10 +232,12 @@ BarVis.prototype.updateVis = function(){
 /**
  * Filter the airports by airport names --------- to be tested
  */
-BarVis.prototype.filterByAirport = function(_airport_filter, sort_by){
+BarVis.prototype.filterByAirport = function(_airport_filter, _sort_by){
 
     this.displayData = this.data.filter(function (d) {
-        return (_airport_filter.indexOf(d.AIRPORT) != -1);
+        for (var j=0; j<_airport_filter.length; ++j)
+            if (_airport_filter[j].indexOf(d.AIRPORT) != -1) return true;
+        return false;
     });
 
     this.sortAirports(_sort_by);
