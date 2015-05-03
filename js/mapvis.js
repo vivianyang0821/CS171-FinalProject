@@ -145,13 +145,11 @@ MapVis.prototype.updateVis = function(){
     node.on("mouseover", function(n,i){
         that.airportMouseOut();
         that.airportMouseOver(i);
-        $(that.eventHandler).trigger("mapOver", i);
+       // $(that.eventHandler).trigger("mapOver", i);
     })
-    /*
-    .on("mouseout", function(){
-        that.airportMouseOut();
+    .on("click", function(n,i){
+       $(that.eventHandler).trigger("mapOver", i);  
     })
-    */
     .style("cursor", "pointer");
     
 }
