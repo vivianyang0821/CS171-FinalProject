@@ -91,10 +91,11 @@
         <div class="row" id="mapVis">
             <form action="action_page.php">
                 Departure Airport:
-                <input type="text" id="depInfo" name="Departure Airport" value=""> 
+                <input type="text" id="depInfo" name="Departure Airport" value=""></input>
                 Arrival Airport:
-                <input type="text" id= "arrInfo" name="Arrival Airport" value="">
-                <input type="button" value="Enter" onclick="search_airport()">
+                <input type="text" id= "arrInfo" name="Arrival Airport" value=""></input>
+                <input type="button" value="Enter" onclick="search_airport()"></input>
+                <input type="button" value="Clear" onclick="clear_selection()"></input>
             </form> 
             <p>
                 <b>Current Observed Departure Airport:  </b> <span id="airportInfo"></span>
@@ -110,18 +111,13 @@
             <span style="font-weight: bold">Airline average delay time (minutes)</span>
             <div>
                 <strong>Encoded lines by:</strong>
-                <input id="encode" type="radio" name="encode" value="dep_delay" onclick="update_line_chart()" > Departure Delay </input>
-                <input id="encode" type="radio" name="encode" value="arr_delay" onclick="update_line_chart()" checked> 
-                Arrival Delay </input></br>
-                <input id="encode" type="radio" name="encode" value="carrier_delay" onclick="update_line_chart()"> 
-                Carrier Delay </input>
-                <input id="encode" type="radio" name="encode" value="weather_delay" onclick="update_line_chart()">
-                Weather Delay </input>
-                <input id="encode" type="radio" name="encode" value="nas_delay" onclick="update_line_chart()"> Nas Delay </input>
-                <input id="encode" type="radio" name="encode" value="late_aircraft_delay" onclick="update_line_chart()"> 
-                Late Aircraft Delay </input>
-                <input id="encode" type="radio" name="encode" value="total_delay" onclick="update_line_chart()"> 
-                Total Delay</input>
+                <input type="radio" name="encode" value="dep_delay" onclick="update_line_chart()" > Departure Delay </input>
+                <input type="radio" name="encode" value="arr_delay" onclick="update_line_chart()" checked> Arrival Delay </input></br>
+                <input type="radio" name="encode" value="carrier_delay" onclick="update_line_chart()"> Carrier Delay </input>
+                <input type="radio" name="encode" value="weather_delay" onclick="update_line_chart()"> Weather Delay </input>
+                <input type="radio" name="encode" value="nas_delay" onclick="update_line_chart()"> Nas Delay </input>
+                <input type="radio" name="encode" value="late_aircraft_delay" onclick="update_line_chart()"> Late Aircraft Delay </input>
+                <input type="radio" name="encode" value="total_delay" onclick="update_line_chart()"> Total Delay</input>
             </div>
             <!-- <svg id="lineVisSvg" width="750" height="300"></svg> -->
         </div>
@@ -227,7 +223,7 @@
         // variables keeping global knowledge of the data
         var topomap; // data for map
         var cityloc; // data for map
-        var airlines = {}; // data for line chart
+        var airlines; // data for line chart
         var airport_list = []; // airport list to filter _allData, and will be used in barVis
         var airport_avg_dep_delay = [] // airport average departure delay time, index should match with airport_list
         var airport_flight_volume = [] // airport flight volume, index should match with airport_list
@@ -247,16 +243,38 @@
             $(MyEventHandler).bind("barMouseOver", function(event, i){
                 map_vis.airportMouseOut();
                 map_vis.airportMouseOver(i);
+
+                var curAirport = map_vis.displayData[i];
+                var airportList = curAirport.dest;
+                var delay_reason = d3.select('input[name="encode"]:checked').node().value
+                airportList.push(curAirport.airport);
+                line_vis.wrangleData(airportList, delay_reason);
+                line_vis.updateVis();
             });
+
             $(MyEventHandler).bind("mapSearch", function(event, depAirport, arrAirport){
                 var sort_by = d3.select("#bar_rank_by").property("selectedIndex");
                 bar_vis.filterByAirport([depAirport, arrAirport], sort_by);
                 bar_vis.updateVis();
-            })
+            });
+
+            $(MyEventHandler).bind("mapOver", function(event, i){
+                var curAirport = map_vis.displayData[i];
+                var airportList = curAirport.dest;
+                var sort_by = d3.select("#bar_rank_by").property("selectedIndex");
+                var delay_reason = d3.select('input[name="encode"]:checked').node().value;
+
+                airportList.push(curAirport.airport);
+                line_vis.wrangleData(airportList, delay_reason);
+                line_vis.updateVis();
+                bar_vis.filterByAirport(airportList, sort_by);
+                bar_vis.updateVis();
+            });
+
         }
 
         // Call this function after all data files are loaded -- error should be "null" if no error
-        var dataLoaded = function (error, _allData, _topomap, _cityloc, _linechartdata) {
+        var dataLoaded = function (error, _allData, _topomap, _cityloc) {
 
             if (!error) {
                 // process map data
@@ -285,36 +303,8 @@
                 topomap = _topomap;
 
                 // process line chart data
-                _linechartdata.map(function(d){
-                    if (d.UNIQUE_CARRIER in airlines){
-                        airlines[d.UNIQUE_CARRIER].push({
-                            "dep_delay": d.DEP_DELAY,
-                            "arr_delay": d.ARR_DELAY,
-                            "carrier_delay": d.CARRIER_DELAY,
-                            "weather_delay": d.WEATHER_DELAY,
-                            "nas_delay":d.NAS_DELAY,
-                            "security_delay":d.SECURITY_DELAY,
-                            "late_aircraft_delay": d.LATE_AIRCRAFT_DELAY,
-                            "total_delay":d.TOTAL_DELAY,
-                            "month": d.MONTH
-                        })
-                    }
-                    else{
-                        airlines[d.UNIQUE_CARRIER] = [{
-                            "dep_delay": d.DEP_DELAY,
-                            "arr_delay": d.ARR_DELAY,
-                            "carrier_delay": d.CARRIER_DELAY,
-                            "weather_delay": d.WEATHER_DELAY,
-                            "nas_delay":d.NAS_DELAY,
-                            "security_delay":d.SECURITY_DELAY,
-                            "late_aircraft_delay": d.LATE_AIRCRAFT_DELAY,
-                            "total_delay":d.TOTAL_DELAY,
-                            "month": d.MONTH
-                        }]
-                    }
-
-                })
-
+                airlines = _allData;
+           
                 // process bar chart data
                 // filter airports
                 allData = _allData;
@@ -446,7 +436,6 @@
             queue().defer(d3.csv, 'data/avg_data_cleaned/ontime_avg_2014.csv')
                     .defer(d3.json, 'data/us.json') // geojson points
                     .defer(d3.csv, 'data/airport.csv') // topojson polygons
-                    .defer(d3.csv, 'data/linechart.csv') // line chart data
                     .await(dataLoaded);
 
         }
@@ -489,13 +478,25 @@
     }
 
     function update_line_chart(){
-        var selected_delay;
-        d3.selectAll("#encode")[0].map(function(d){
-            if (d.checked) selected_delay = d.value;
-        })
-
-        line_vis.wrangleData(selected_delay);
+        var delay_reason = d3.select('input[name="encode"]:checked').node().value;
+        line_vis.wrangleData(line_vis.airports, delay_reason);
         line_vis.updateVis();
+    }
+
+    function clear_selection(){
+        var sort_by = d3.select("#bar_rank_by").property("selectedIndex");
+        var delay_reason = d3.select('input[name="encode"]:checked').node().value;
+        d3.select("#depInfo").property("value", "");
+        d3.select("#arrInfo").property("value", "");
+        d3.select("#airportInfo").text("None")
+        d3.select("#cityInfo").text("None")
+        d3.select("#avgDelay").text("None")
+        d3.select("#flightVolume").text("None")
+        d3.selectAll(".link").remove();
+        line_vis.wrangleData("all", delay_reason);
+        line_vis.updateVis();
+        bar_vis.filterByAirport(null, sort_by);
+        bar_vis.updateVis();
     }
 
 </script>

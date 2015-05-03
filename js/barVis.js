@@ -234,11 +234,15 @@ BarVis.prototype.updateVis = function(){
  */
 BarVis.prototype.filterByAirport = function(_airport_filter, _sort_by){
 
-    this.displayData = this.data.filter(function (d) {
-        for (var j=0; j<_airport_filter.length; ++j)
-            if (_airport_filter[j].indexOf(d.AIRPORT) != -1) return true;
-        return false;
+    if (_airport_filter == null) this.displayData = this.data;
+    else{
+        this.displayData = this.data.filter(function (d) {
+            for (var j=0; j<_airport_filter.length; ++j)
+                if (_airport_filter[j].indexOf(d.AIRPORT) != -1) return true;
+            return false;
     });
+
+    }
 
     this.sortAirports(_sort_by);
 

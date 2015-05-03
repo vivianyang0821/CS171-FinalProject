@@ -145,10 +145,7 @@ MapVis.prototype.updateVis = function(){
     node.on("mouseover", function(n,i){
         that.airportMouseOut();
         that.airportMouseOver(i);
-        var curAirport = that.displayData[i];
-        var airportList = curAirport.dest;
-        airportList.push(curAirport.airport);
-        $(that.eventHandler).trigger("mapSearch", airportList);
+        $(that.eventHandler).trigger("mapOver", i);
     })
     /*
     .on("mouseout", function(){
@@ -163,8 +160,8 @@ MapVis.prototype.updateVis = function(){
 MapVis.prototype.searchVis = function(){
     var that = this;
     var depInfo = d3.select("#depInfo").property("value");
-    var arrInfo = d3.select("#arrInfo").property("value")
-
+    var arrInfo = d3.select("#arrInfo").property("value");
+    
     if ((depInfo in this.airportLoc) && (arrInfo in this.airportLoc)){
         d3.selectAll(".link").remove();
         $(that.eventHandler).trigger("mapSearch", [depInfo, arrInfo]);

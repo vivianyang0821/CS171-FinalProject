@@ -8,6 +8,7 @@ LineVis = function(_parentElement, _data){
     this.parentElement = _parentElement;
     this.data = _data;
     this.displayData = [];
+    this.airports = "all";
     // define "constants"
     this.MARGINS = {top: 20, right: 20, bottom: 20, left: 20};
     this.WIDTH = 750 - this.MARGINS.left - this.MARGINS.right;
@@ -66,7 +67,7 @@ LineVis.prototype.initVis = function(){
         .attr("transform", "translate(" + (this.MARGINS.left) + ",0)");
 
     // filter, aggregate, modify data
-    this.wrangleData('arr_delay');
+    this.wrangleData('all', 'arr_delay');
 
     // call the update method
     this.updateVis();
@@ -78,15 +79,31 @@ LineVis.prototype.initVis = function(){
  * @param _filterFunction - a function that filters data or "null" if none
  */
 //LineVis.prototype.wrangleData= function(_filterFunction){
-LineVis.prototype.wrangleData= function(_filter){
+LineVis.prototype.wrangleData= function(_airport_filter, _delay_filter){
 
     // displayData should hold the data which is visualized
-    this.displayData = this.filterAndAggregate(_filter);
+    //this.airports = _airport_filter;
+    this.filterByAirport(_airport_filter);
 
-    //// you might be able to pass some options,
-    //// if you don't pass options -- set the default options
-    //// the default is: var options = {filter: function(){return true;} }
-    //var options = _options || {filter: function(){return true;}};
+    this.displayData = d3.nest()
+        .key(function(d){ return d.UNIQUE_CARRIER})
+        .key(function(d){ return d.MONTH})
+        .rollup(function(leaves) {
+            return {
+                "dep_delay": d3.mean(leaves, function(d){return d.DEP_DELAY}),
+                "arr_delay": d3.mean(leaves, function(d){return d.ARR_DELAY}),
+                "carrier_delay": d3.mean(leaves, function(d){return d.DEP_DELAY}),
+                "weather_delay": d3.mean(leaves, function(d){return d.WEATHER_DELAY}),
+                "nas_delay": d3.mean(leaves, function(d){return d.NAS_DELAY}),
+                "security_delay": d3.mean(leaves, function(d){return d.SECURITY_DELAY}),
+                "late_aircraft_delay": d3.mean(leaves, function(d){return d.LATE_AIRCRAFT_DELAY}),
+                "total_delay": d3.mean(leaves, function(d){return d3.sum([d.DEP_DELAY,d.ARR_DELAY])})
+            }
+        })
+        .entries(this.displayData);
+
+    this.displayData = this.filterByDelay(_delay_filter);
+
 }
 
 
@@ -142,6 +159,8 @@ LineVis.prototype.updateVis = function(){
             .attr('fill', 'none')
             .style("opacity",0.15)
             .on('mouseover', function(){
+                d3.select(this).style("stroke-width", 3);
+
                 g = that.line
                 .append("g")
                 .attr("id", "info");
@@ -165,6 +184,7 @@ LineVis.prototype.updateVis = function(){
 
             })
             .on('mouseout',function(){
+                d3.select(this).style("stroke-width", 2);
                 d3.select(this).style("opacity",0.15);
                 d3.select("#info").remove()
             })
@@ -191,18 +211,32 @@ LineVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
  * @param _filter - A filter can be, e.g.,  a function that is only true for data of a given time range
  * @returns {Array|*}
  */
-LineVis.prototype.filterAndAggregate = function(_delay_filter){
+LineVis.prototype.filterByDelay = function(_delay_filter){
     var _data = []
 
-    for (var m in this.data){
+    this.displayData.map(function(d){
         var content = {};
-        content['delay'] =  this.data[m].map(function(d){
-            return parseInt(d[_delay_filter], 10);
-        });
-        content['name'] = m;
+        content["name"] = d.key;
+        content['delay'] = d.values.map(function(e){
+            return parseFloat(e.values[_delay_filter]);
+        })
         _data.push(content);
-    }
+    })
+
     return _data;
+}
+
+LineVis.prototype.filterByAirport = function(airports){
+    if (airports == "all") {
+        this.displayData = this.data;
+        return;
+    }
+    else{
+        this.displayData = this.data.filter(function(d){
+            return (airports.indexOf(d.ORIGIN) != -1 || airports.indexOf(d.DEST) != -1);
+        }) 
+    };
+
 }
 
 
