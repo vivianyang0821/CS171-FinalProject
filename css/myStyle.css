@@ -1,22 +1,23 @@
 body{
     font-family: 'PT Sans', sans-serif;
+    fill: #FFFFFF;
 }
 
 .axis line {
     fill: none;
-    stroke: #000;
+    stroke: #FFFFFF;
     shape-rendering: crispEdges;
 }
 
 .boundingBox{
     cursor: pointer;
-    fill: grey;
+    fill: #FFFFFF;
     fill-opacity: .3;
     pointer-events: all;
 }
 
 .brush{
-    fill: darkgrey;
+    fill: #FFFFFF;
     fill-opacity: .5;
     pointer-events: none;
 }
@@ -28,7 +29,7 @@ body{
 
 .axis path {
     fill: none;
-    stroke: #777;
+    stroke: #FFFFFF;
     shape-rendering: crispEdges;
 }
 

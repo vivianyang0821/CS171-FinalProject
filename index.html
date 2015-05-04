@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head lang="en">
@@ -70,16 +71,21 @@
     #demo-content {
         padding-top: 100px;
     }
+
+    b {
+        color: #FFFFFF;
+    }
+
     </style>
 
 </head>
-<body background="img/background.jpg" class = "demo">
+<body background="img/background2.jpg" class = "demo">
     <div class="container">
         <h1>
-            <font face="impact" color='black' size = '6'>
+            <font face="impact" color='White' size = '6'>
                 Visualization of 2014 Domestic Flight Performance in the United States
             </font>
-            <img src="img/airplane1.jpg" alt="plane" style="width:100px;height:60px">  
+            
         </h1>
         <div id="loader-wrapper">
             <div id="loader"></div>
@@ -90,42 +96,43 @@
     <div class="col-md-8">
         <div class="row" id="mapVis">
             <form action="action_page.php">
-                Departure Airport:
+                <b>Departure Airport:</b>
                 <input type="text" id="depInfo" name="Departure Airport" value=""></input>
-                Arrival Airport:
+                &nbsp; &nbsp;
+                <b>Arrival Airport:</b>
                 <input type="text" id= "arrInfo" name="Arrival Airport" value=""></input>
                 <input type="button" value="Enter" onclick="search_airport()"></input>
                 <input type="button" value="Clear" onclick="clear_selection()"></input>
             </form> 
             <p>
-                <b>Current Observed Departure Airport:  </b> <span id="airportInfo"></span>
+                <b>Current Observed Departure Airport:  </b> <span id="airportInfo" style="color:white"></span>
                 &nbsp; &nbsp; &nbsp;
-                <b>Current Observed Departure City:  </b> <span id="cityInfo"></span>
+                <b>Current Observed Departure City:  </b> <span id="cityInfo" style="color:white"></span>
                 </br>
-                <b>Average Departure Delay Minutes:  </b> <span id="avgDelay"></span>
+                <b>Average Departure Delay Minutes:  </b> <span id="avgDelay" style="color:white"></span>
                 &nbsp; &nbsp; &nbsp; &nbsp;
-                <b>Flight Volume:  </b> <span id="flightVolume"></span>
+                <b>Flight Volume:  </b> <span id="flightVolume" style="color:white"></span>
             </p>
         </div>
         <div class="row" id="lineVis">
-            <span style="font-weight: bold">Airline average delay time (minutes)</span>
+            <span style="font-weight: bold"><b>Airline average delay time (minutes)</b></span>
             <div>
-                <strong>Encoded lines by:</strong>
-                <input type="radio" name="encode" value="dep_delay" onclick="update_line_chart()" > Departure Delay </input>
-                <input type="radio" name="encode" value="arr_delay" onclick="update_line_chart()" checked> Arrival Delay </input></br>
-                <input type="radio" name="encode" value="carrier_delay" onclick="update_line_chart()"> Carrier Delay </input>
-                <input type="radio" name="encode" value="weather_delay" onclick="update_line_chart()"> Weather Delay </input>
-                <input type="radio" name="encode" value="nas_delay" onclick="update_line_chart()"> Nas Delay </input>
-                <input type="radio" name="encode" value="late_aircraft_delay" onclick="update_line_chart()"> Late Aircraft Delay </input>
-                <input type="radio" name="encode" value="total_delay" onclick="update_line_chart()"> Total Delay</input>
+                <strong><b>Encoded lines by:</b></strong>
+                <input type="radio" name="encode" value="dep_delay" onclick="update_line_chart()" > <b>Departure Delay</b></input>
+                <input type="radio" name="encode" value="arr_delay" onclick="update_line_chart()" checked> <b>Arrival Delay</b></input></br>
+                <input type="radio" name="encode" value="carrier_delay" onclick="update_line_chart()"> <b>Carrier Delay</b> </input>
+                <input type="radio" name="encode" value="weather_delay" onclick="update_line_chart()"> <b>Weather Delay</b> </input>
+                <input type="radio" name="encode" value="nas_delay" onclick="update_line_chart()"> <b>Nas Delay</b> </input>
+                <input type="radio" name="encode" value="late_aircraft_delay" onclick="update_line_chart()"> <b>Late Aircraft Delay</b> </input>
+                <input type="radio" name="encode" value="total_delay" onclick="update_line_chart()"><b>Total Delay</b></input>
             </div>
             <!-- <svg id="lineVisSvg" width="750" height="300"></svg> -->
         </div>
     </div>
     <div class="col-md-4" id="barVisContainer">
-        <span style="font-weight: bold">Airport average delay time (minutes):</span>
+        <span style="font-weight: bold"><b>Airport average delay time (minutes):</b></span>
         <form id="bar_rank_by_form">
-            Sort by:
+            <b>Sort by:</b>
             <select id="bar_rank_by" name="bar_rank_by" onchange="sort_bar_chart()">
                     <option value="airport" selected>Airport Name</option>
                     <option value="dep_low">Departure Delay (Low to High)</option>
@@ -136,7 +143,7 @@
             </select>
         </form>
         <form id="bar_state_form">
-            Select State:
+            <b>Select State:</b>
             <select id="bar_state" name="bar_state" onchange="filter_state_bar_chart()">
                     <option value="all" selected>All</option>
                     <option value="AL">Alabama</option>
@@ -509,3 +516,4 @@
 
 </body>
 </html>
+

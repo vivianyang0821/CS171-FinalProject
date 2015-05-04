@@ -55,16 +55,18 @@ LineVis.prototype.initVis = function(){
     this.xAxis = d3.svg.axis()
             .scale(this.xScale);
 
-    this.colors = d3.scale.category20();
+    //this.colors = d3.scale.category20();
 
     // add axes visual elements
     this.svg.append("svg:g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + (this.HEIGHT - this.MARGINS.bottom) + ")");
+        
 
     this.svg.append("svg:g")
         .attr("class", "y axis")
         .attr("transform", "translate(" + (this.MARGINS.left) + ",0)");
+        
 
     // filter, aggregate, modify data
     this.wrangleData('all', 'arr_delay');
@@ -154,16 +156,17 @@ LineVis.prototype.updateVis = function(){
         this.line.append('path')
             .attr('id', String(m))
             .attr('d', lineGen(this.displayData[m].delay))
-            .attr('stroke', this.colors(m))
+            .attr('stroke', "Wheat")
             .attr('stroke-width', 2)
             .attr('fill', 'none')
-            .style("opacity",0.15)
+            .style("opacity",0.5)
             .on('mouseover', function(){
                 d3.select(this).style("stroke-width", 3);
 
                 g = that.line
                 .append("g")
                 .attr("id", "info");
+                
 
                 g
                 .append("rect")
@@ -180,12 +183,14 @@ LineVis.prototype.updateVis = function(){
                 .attr("fill", "#585858")
                 .text(that.dictionary[that.displayData[parseInt(d3.select(this).attr('id'))].name]);
                 d3.select(this).style("opacity",1);
+                d3.select(this).style("stroke","Salmon");
                 //console.log(that.displayData)
 
             })
             .on('mouseout',function(){
                 d3.select(this).style("stroke-width", 2);
-                d3.select(this).style("opacity",0.15);
+                d3.select(this).style("opacity",0.5);
+                d3.select(this).style("stroke","Wheat");
                 d3.select("#info").remove()
             })
             .style("cursor", "pointer");

@@ -45,8 +45,8 @@ BarVis.prototype.initVis = function(){
     this.x = d3.scale.linear()
         .range([0, this.width]);
 
-    this.color = d3.scale.ordinal().range(["Bisque", "LightBlue"]);
-    this.color_avg = d3.scale.ordinal().range(["LightSalmon", "LightSteelBlue"]);
+    this.color = d3.scale.ordinal().range(["Bisque", "Salmon"]);
+    this.color_avg = d3.scale.ordinal().range(["LightSalmon", "White"]);
 
     this.xAxis = d3.svg.axis()
         .scale(this.x)
@@ -160,7 +160,7 @@ BarVis.prototype.updateVis = function(){
         .attr("x1", this.x(this.averageArr))
         .attr("x2", this.x(this.averageArr))
         .attr("y2", this.height)
-        .style("stroke", "LightSteelBlue")
+        .style("stroke", "White")
         .style("stroke-dasharray", "5,5");
 
     // updates graph
@@ -210,7 +210,7 @@ BarVis.prototype.updateVis = function(){
         .attr("x", function(d) { return d.ARR_DELAY < 0 ? (that.x(d.ARR_DELAY) - that.x(0)) : 1; })
         .attr("y", bar_height + 1)
         .attr("height", bar_height)
-        .style("fill", "LightBlue")
+        .style("fill", "Salmon")
         .transition()
         .attr("width", function(d) {return Math.abs(that.x(d.ARR_DELAY) - that.x(0)); });
 
