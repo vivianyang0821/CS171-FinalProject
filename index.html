@@ -278,21 +278,23 @@
 
             if (!error) {
                 // process map data
+                
                 var indexRetriever = {};
                 cityloc = _cityloc.map(function(d,i){
-                    indexRetriever[d.origin_airport] = i;
-                    airport_list.push(d.origin_airport);
+                    indexRetriever[d.airport] = i;
+                    airport_list.push(d.airport);
                     return {
-                        city: d.municipality,
-                        airport: d.origin_airport,
-                        location: {
-                            lat: d.latitude_deg,
-                            long: d.longitude_deg
+                        "city": d.municipality,
+                        "airport": d.airport,
+                        "location": {
+                            lat: parseFloat(d.latitude),
+                            long: parseFloat(d.longitude)
                         },
-                        dest: []
+                        "dest": []
 
-                    };
+                    }  
                 })
+
                 _allData.map(function(d,i){
                     var idx = indexRetriever[d.ORIGIN];
                     if (idx != undefined){
@@ -301,6 +303,7 @@
                     }
                 })
                 topomap = _topomap;
+                console.log(cityloc)
 
                 // process line chart data
                 airlines = _allData;

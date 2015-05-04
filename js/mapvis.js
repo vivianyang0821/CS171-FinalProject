@@ -24,6 +24,7 @@ MapVis = function(_parentElement, _data, _metaData, _avg_delay_data, _flight_vol
     this.eventHandler = _eventHandler;
     this.data = _data;
     this.metaData = _metaData;
+    console.log(this.metaData)
     this.avg_delay_data = _avg_delay_data;
     this.flight_volume_data = _flight_volume_data;
     this.displayData = [];
@@ -78,11 +79,13 @@ MapVis.prototype.initVis = function(){
     this.wrangleData(null);
 
     this.displayData.map(function(d){
+
         var temp = that.projection([
           d.location.long,
           d.location.lat
         ]);
-        that.airportLoc[d.airport] = {'x':temp[0], 'y':temp[1]};
+        if (temp != null)
+            that.airportLoc[d.airport] = {'x':temp[0], 'y':temp[1]};
     });
 
     // call the update method
