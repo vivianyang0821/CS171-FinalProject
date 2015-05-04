@@ -94,7 +94,7 @@ LineVis.prototype.wrangleData= function(_airport_filter, _delay_filter){
             return {
                 "dep_delay": d3.mean(leaves, function(d){return d.DEP_DELAY}),
                 "arr_delay": d3.mean(leaves, function(d){return d.ARR_DELAY}),
-                "carrier_delay": d3.mean(leaves, function(d){return d.DEP_DELAY}),
+                "carrier_delay": d3.mean(leaves, function(d){return d.CARRIER_DELAY}),
                 "weather_delay": d3.mean(leaves, function(d){return d.WEATHER_DELAY}),
                 "nas_delay": d3.mean(leaves, function(d){return d.NAS_DELAY}),
                 "security_delay": d3.mean(leaves, function(d){return d.SECURITY_DELAY}),
