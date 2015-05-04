@@ -261,6 +261,9 @@
 
             $(MyEventHandler).bind("mapSearch", function(event, depAirport, arrAirport){
                 var sort_by = d3.select("#bar_rank_by").property("selectedIndex");
+                var delay_reason = d3.select('input[name="encode"]:checked').node().value;
+                line_vis.wrangleData([depAirport, arrAirport], delay_reason);
+                line_vis.updateVis();
                 bar_vis.filterByAirport([depAirport, arrAirport], sort_by);
                 bar_vis.updateVis();
             });
