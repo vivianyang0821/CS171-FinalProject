@@ -497,6 +497,8 @@
     }
 
     function clear_selection(){
+        var dropdown = document.getElementById('bar_state');
+        dropdown.options[0].selected = true;
         var sort_by = d3.select("#bar_rank_by").property("selectedIndex");
         var delay_reason = d3.select('input[name="encode"]:checked').node().value;
         d3.select("#depInfo").property("value", "");

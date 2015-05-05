@@ -84,7 +84,7 @@ LineVis.prototype.initVis = function(){
 LineVis.prototype.wrangleData= function(_airport_filter, _delay_filter){
 
     // displayData should hold the data which is visualized
-    //this.airports = _airport_filter;
+    this.airports = _airport_filter;
     this.filterByAirport(_airport_filter);
 
     this.displayData = d3.nest()

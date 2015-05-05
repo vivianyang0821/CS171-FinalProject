@@ -10,6 +10,7 @@ BarVis = function(_parentElement, _data, _airport_list, _eventHandler){
     this.displayData = _data;
     this.airport_list = _airport_list;
     this.eventHandler = _eventHandler;
+    this.airport_filter = "all";
     this.averageDep = 0; // overall average departure delay
     this.averageArr = 0; // overall average arrival delay
 
@@ -46,7 +47,7 @@ BarVis.prototype.initVis = function(){
         .range([0, this.width]);
 
     this.color = d3.scale.ordinal().range(["Bisque", "Salmon"]);
-    this.color_avg = d3.scale.ordinal().range(["LightSalmon", "White"]);
+    this.color_avg = d3.scale.ordinal().range(["Bisque", "Salmon"]);
 
     this.xAxis = d3.svg.axis()
         .scale(this.x)
@@ -152,7 +153,7 @@ BarVis.prototype.updateVis = function(){
         .attr("x1", this.x(this.averageDep))
         .attr("x2", this.x(this.averageDep))
         .attr("y2", this.height)
-        .style("stroke", "LightSalmon")
+        .style("stroke", "Bisque")
         .style("stroke-dasharray", "5,5");
 
     this.svg.append("line")
@@ -160,7 +161,7 @@ BarVis.prototype.updateVis = function(){
         .attr("x1", this.x(this.averageArr))
         .attr("x2", this.x(this.averageArr))
         .attr("y2", this.height)
-        .style("stroke", "White")
+        .style("stroke", "Salmon")
         .style("stroke-dasharray", "5,5");
 
     // updates graph
@@ -234,8 +235,13 @@ BarVis.prototype.updateVis = function(){
  */
 BarVis.prototype.filterByAirport = function(_airport_filter, _sort_by){
 
-    if (_airport_filter == null) this.displayData = this.data;
+    if (_airport_filter == null) {
+        this.displayData = this.data;
+        this.airport_filter = "all";
+    }
+
     else{
+        this.airport_filter = _airport_filter;
         this.displayData = this.data.filter(function (d) {
             for (var j=0; j<_airport_filter.length; ++j)
                 if (_airport_filter[j].indexOf(d.AIRPORT) != -1) return true;
@@ -254,13 +260,23 @@ BarVis.prototype.filterByAirport = function(_airport_filter, _sort_by){
  */
 BarVis.prototype.filterByState = function(_state_filter, _sort_by){
 
-    if (_state_filter == "all"){
-        this.displayData = this.data;
+    if (this.airport_filter == "all"){
+        if (_state_filter == "all"){
+            this.displayData = this.data;
+        }
+        else {
+            this.displayData = this.data.filter(function (d) {
+                return d.AIRPORT_STATE_NM == _state_filter;
+            });
+        }
     }
-    else {
-        this.displayData = this.data.filter(function (d) {
-            return d.AIRPORT_STATE_NM == _state_filter;
-        });
+    else{
+        this.filterByAirport(this.airport_filter, _sort_by);
+        if (_state_filter != "all"){
+            this.displayData = this.displayData.filter(function (d) {
+                return d.AIRPORT_STATE_NM == _state_filter;
+            });
+        }
     }
 
     this.sortAirports(_sort_by);
