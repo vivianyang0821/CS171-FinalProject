@@ -3,7 +3,7 @@
 
 Visit our website at: http://vivianyang0821.github.io/CS171-FinalProject/
 
-See our screencast at: 
+See our screencast at: https://www.youtube.com/watch?v=aH81WNPVl4Q
 
 ### Code structure:
 * code: 
