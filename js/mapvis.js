@@ -19,11 +19,14 @@
  * @param _metaData -- the meta-data / data description object
  * @constructor
  */
-MapVis = function(_parentElement, _data, _metaData, _eventHandler){
+MapVis = function(_parentElement, _data, _metaData, _avg_delay_data, _flight_volume_data, _eventHandler){
     this.parentElement = _parentElement;
     this.eventHandler = _eventHandler;
     this.data = _data;
     this.metaData = _metaData;
+    console.log(this.metaData)
+    this.avg_delay_data = _avg_delay_data;
+    this.flight_volume_data = _flight_volume_data;
     this.displayData = [];
 
     this.data.objects.cb_2013_us_nation_20m.geometries = 
@@ -35,6 +38,8 @@ MapVis = function(_parentElement, _data, _metaData, _eventHandler){
     this.margin = {top: 20, right: 20, bottom: 30, left: 50},
     this.width = 750 - this.margin.left - this.margin.right,
     this.height = 400 - this.margin.top - this.margin.bottom;
+
+    this.airportLoc = {};
 
     this.initVis();
 
@@ -68,11 +73,20 @@ MapVis.prototype.initVis = function(){
     this.svg.append("path")
         .datum(topojson.feature(this.data, this.data.objects.cb_2013_us_nation_20m))
         .attr("d", path)
-        .style("fill", "pink")
-
+        .style("fill", "BlanchedAlmond")
     
     // filter, aggregate, modify data
     this.wrangleData(null);
+
+    this.displayData.map(function(d){
+
+        var temp = that.projection([
+          d.location.long,
+          d.location.lat
+        ]);
+        if (temp != null)
+            that.airportLoc[d.airport] = {'x':temp[0], 'y':temp[1]};
+    });
 
     // call the update method
     this.updateVis();
@@ -115,22 +129,75 @@ MapVis.prototype.updateVis = function(){
     // TODO: implement update graphs (D3: update, enter, exit)
     // updates scales
     var that = this;
-    this.svg.append("g")
-    .attr("class", "cities")
-    .selectAll("circle")
-    .data(this.displayData)
-  .enter().append("circle")
-    .attr("transform", function(d) {
-      return "translate(" + that.projection([
-          d.location.long,
-          d.location.lat
-        ]) + ")"
-      })
-    .attr("r", 2)
-    .attr("fill", "grey");
+    //console.log(that.airportLoc)
 
+    var node = this.svg.append("g")
+        .attr("class", "cities")
+        .selectAll("circle")
+        .data(this.displayData)
+        .enter().append("circle")
+        .attr("transform", function(d) {
+          return "translate(" + that.projection([
+              d.location.long,
+              d.location.lat
+            ]) + ")"
+          })
+        .attr("r", 3)
+        .attr("fill", "grey");
+
+    node.on("mouseover", function(n,i){
+        that.airportMouseOut();
+        that.airportMouseOver(i);
+       // $(that.eventHandler).trigger("mapOver", i);
+    })
+    .on("click", function(n,i){
+       $(that.eventHandler).trigger("mapOver", i);  
+    })
+    .style("cursor", "pointer");
+    
 }
 
+
+MapVis.prototype.searchVis = function(){
+    var that = this;
+    var depInfo = d3.select("#depInfo").property("value");
+    var arrInfo = d3.select("#arrInfo").property("value");
+    
+    if ((depInfo in this.airportLoc) && (arrInfo in this.airportLoc)){
+        d3.selectAll(".link").remove();
+        $(that.eventHandler).trigger("mapSearch", [depInfo, arrInfo]);
+        var i;
+        that.displayData.map(function(d,j){
+            if (d.airport == depInfo) i = j;
+        })
+        var curAirport = that.displayData[i];
+
+        d3.select("#airportInfo").text(String(curAirport.airport));
+        d3.select("#cityInfo").text(String(curAirport.city));
+        d3.select("#avgDelay").text(String(that.avg_delay_data[i].toFixed(2)))
+        d3.select("#flightVolume").text(String(that.flight_volume_data[i]))
+
+        var links = [{
+        source: {'x': this.airportLoc[depInfo].x, 
+                 'y': this.airportLoc[depInfo].y
+                },
+        target: {'x': this.airportLoc[arrInfo].x, 
+                 'y': this.airportLoc[arrInfo].y
+                }
+        }]
+        var link = that.svg.selectAll(".link")
+                    .data(links);
+
+        link.enter().append("line")
+          .attr("class", "link")
+          .attr("x1", function(d) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; })
+          .style("stroke","Salmon")
+          .style("stroke-width",2.5)
+    }
+}
 
 /**
  * Gets called by event handler and should create new aggregated data
@@ -138,10 +205,40 @@ MapVis.prototype.updateVis = function(){
  * be defined here.
  * @param selection
  */
-MapVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
-    // TODO: call wrangle function
-    this.updateVis();
+MapVis.prototype.airportMouseOver = function (i){
+    var that = this;
 
+    var curAirport = that.displayData[i];
+    d3.select("#airportInfo").text(String(curAirport.airport));
+    d3.select("#cityInfo").text(String(curAirport.city));
+    d3.select("#avgDelay").text(String(that.avg_delay_data[i].toFixed(2)))
+    d3.select("#flightVolume").text(String(that.flight_volume_data[i]))
+    var links = curAirport.dest.map(function(d){
+        if ((curAirport.airport in that.airportLoc) && (d in that.airportLoc)){
+            return {source: {'x':that.airportLoc[curAirport.airport].x, 'y': that.airportLoc[curAirport.airport].y},
+                target: {'x':that.airportLoc[d].x, 'y': that.airportLoc[d].y}};
+        }
+        else{
+            return {source: {'x':0, 'y': 0},
+                target: {'x':0, 'y': 0}};
+        }
+    })
+
+    var link = that.svg.selectAll(".link")
+        .data(links);
+
+    link.enter().append("line")
+        .attr("class", "link")
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; })
+        .style("stroke","Salmon")
+        .style("stroke-width",2.5)
+}
+
+MapVis.prototype.airportMouseOut = function (){
+    d3.selectAll(".link").remove();
 }
 
 

@@ -4,10 +4,15 @@
  * @param _data -- the data array
  * @constructor
  */
-BarVis = function(_parentElement, _data){
+BarVis = function(_parentElement, _data, _airport_list, _eventHandler){
     this.parentElement = _parentElement;
     this.data = _data;
-    this.displayData = [];
+    this.displayData = _data;
+    this.airport_list = _airport_list;
+    this.eventHandler = _eventHandler;
+    this.airport_filter = "all";
+    this.averageDep = 0; // overall average departure delay
+    this.averageArr = 0; // overall average arrival delay
 
     // define "constants"
     this.margin = {top: 20, right: 10, bottom: 10, left: 10};
@@ -26,6 +31,10 @@ BarVis.prototype.initVis = function(){
 
     var that = this; // read about the this
 
+    // compute overall average departure and arrival delay
+    this.averageDep = d3.mean(that.data, function(d){return d.DEP_DELAY;});
+    this.averageArr = d3.mean(that.data, function(d){return d.ARR_DELAY;});
+
     // constructs SVG layout
     this.svg = this.parentElement.append("svg")
         .attr("width", this.width + this.margin.left + this.margin.right)
@@ -37,7 +46,8 @@ BarVis.prototype.initVis = function(){
     this.x = d3.scale.linear()
         .range([0, this.width]);
 
-    this.color = d3.scale.ordinal().range(["lightblue", "lightcoral"]);
+    this.color = d3.scale.ordinal().range(["Bisque", "Salmon"]);
+    this.color_avg = d3.scale.ordinal().range(["Bisque", "Salmon"]);
 
     this.xAxis = d3.svg.axis()
         .scale(this.x)
@@ -60,7 +70,7 @@ BarVis.prototype.initVis = function(){
         .data(["Departure Delay", "Arrival Delay"])
         .enter().append("g")
         .attr("class", "legend")
-        .attr("transform", function(d, i) { return "translate(0," + (i * 20 + 265) + ")"; });
+        .attr("transform", function(d, i) { return "translate(0," + (i * 20 + 35) + ")"; });
 
     this.legend.append("rect")
         .attr("x", this.width - 15)
@@ -76,28 +86,33 @@ BarVis.prototype.initVis = function(){
         .attr("font-family", "sans-serif")
         .text(function(d) { return d; });
 
-    // filter, aggregate, modify data
-    this.wrangleData('all', 0);
+    // legend for average lines
+    this.legend_average = this.svg.selectAll(".legend_avg")
+        .data(["Overall Average Departure Delay", "Overall Average Arrival Delay"])
+        .enter().append("g")
+        .attr("class", "legend_avg")
+        .attr("transform", function(d, i) { return "translate(0," + (i * 20 + 75) + ")"; });
+
+    this.legend_average.append("rect")
+        .attr("x", this.width - 15)
+        .attr("y", 6)
+        .attr("width", 15)
+        .attr("height", 1)
+        .style("fill", this.color_avg);
+
+    this.legend_average.append("text")
+        .attr("x", this.width - 20)
+        .attr("y", 10)
+        .style("text-anchor", "end")
+        .attr("font-size", "10px")
+        .attr("font-family", "sans-serif")
+        .text(function(d) { return d; });
+
+    // sort data
+    this.sortAirports(0);
 
     // call the update method
     this.updateVis();
-}
-
-
-/**
- * Method to wrangle the data.
- * @param _filterFunction - a function that filters data or "null" if none
- */
-//BarVis.prototype.wrangleData= function(_filterFunction){
-BarVis.prototype.wrangleData= function(_state_filter, _sortby){
-
-        // displayData should hold the data which is visualized
-        this.displayData = this.filterAndAggregate(_state_filter, _sortby);
-
-        //// you might be able to pass some options,
-        //// if you don't pass options -- set the default options
-        //// the default is: var options = {filter: function(){return true;} }
-        //var options = _options || {filter: function(){return true;}};
 }
 
 
@@ -120,6 +135,8 @@ BarVis.prototype.updateVis = function(){
     var bar_height = 15;
     var group_height = 32;
 
+    this.svg.selectAll("line").remove();
+
     // updates axis
     this.svg.select(".x.axis")
         .call(this.xAxis);
@@ -129,6 +146,23 @@ BarVis.prototype.updateVis = function(){
         .attr("x1", this.x(0))
         .attr("x2", this.x(0))
         .attr("y2", this.height);
+
+    // draw average lines
+    this.svg.append("line")
+        .attr("class", "averageDep")
+        .attr("x1", this.x(this.averageDep))
+        .attr("x2", this.x(this.averageDep))
+        .attr("y2", this.height)
+        .style("stroke", "Bisque")
+        .style("stroke-dasharray", "5,5");
+
+    this.svg.append("line")
+        .attr("class", "averageArr")
+        .attr("x1", this.x(this.averageArr))
+        .attr("x2", this.x(this.averageArr))
+        .attr("y2", this.height)
+        .style("stroke", "Salmon")
+        .style("stroke-dasharray", "5,5");
 
     // updates graph
     var bar = this.svg.selectAll(".bar")
@@ -142,10 +176,19 @@ BarVis.prototype.updateVis = function(){
     bar_enter.append("rect").attr("class", "arr_bar");
     bar_enter.append("text");
 
-    // Add click interactivity
-    /*bar_enter.on("click", function(d) {
-        $(that.eventHandler).trigger("selectionChanged", d.type);
-    })*/
+    // Add mouse interactivity
+    bar_enter
+        .on("mouseover", function(d){
+            var i = that.airport_list.indexOf(d.AIRPORT);
+            $(that.eventHandler).trigger("barMouseOver", i);
+        })
+        .on("click", function(d){
+            var i = that.airport_list.indexOf(d.AIRPORT);
+            $(that.eventHandler).trigger("barMouseOver", i);
+        });
+        /*.on("mouseout", function(){    ----------- cannot add mouseout if we want to keep the result of click
+            $(that.eventHandler).trigger("barMouseOut");
+        });*/
 
     // Add attributes (position) to all bar groups
     bar.attr("class", "bar")
@@ -158,17 +201,17 @@ BarVis.prototype.updateVis = function(){
 
     // Update all inner rects and texts (both update and enter sets)
     bar.selectAll(".dep_bar")
-        .attr("x", function(d) { return d.DEP_DELAY < 0 ? (that.x(d.DEP_DELAY) - that.x(0)) : 0; })
+        .attr("x", function(d) { return d.DEP_DELAY < 0 ? (that.x(d.DEP_DELAY) - that.x(0)) : 1; })
         .attr("height", bar_height)
-        .style("fill", "lightblue")
+        .style("fill", "Bisque")
         .transition()
         .attr("width", function(d) {return Math.abs(that.x(d.DEP_DELAY) - that.x(0)); });
 
     bar.selectAll(".arr_bar")
-        .attr("x", function(d) { return d.ARR_DELAY < 0 ? (that.x(d.ARR_DELAY) - that.x(0)) : 0; })
+        .attr("x", function(d) { return d.ARR_DELAY < 0 ? (that.x(d.ARR_DELAY) - that.x(0)) : 1; })
         .attr("y", bar_height + 1)
         .attr("height", bar_height)
-        .style("fill", "lightcoral")
+        .style("fill", "Salmon")
         .transition()
         .attr("width", function(d) {return Math.abs(that.x(d.ARR_DELAY) - that.x(0)); });
 
@@ -188,45 +231,65 @@ BarVis.prototype.updateVis = function(){
 
 
 /**
- * Gets called by event handler and should create new aggregated data
- * aggregation is done by the function "aggregate(filter)". Filter has to
- * be defined here.
- * @param selection
+ * Filter the airports by airport names --------- to be tested
  */
-BarVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
+BarVis.prototype.filterByAirport = function(_airport_filter, _sort_by){
 
-    this.updateVis();
+    if (_airport_filter == null) {
+        this.displayData = this.data;
+        this.airport_filter = "all";
+    }
+
+    else{
+        this.airport_filter = _airport_filter;
+        this.displayData = this.data.filter(function (d) {
+            for (var j=0; j<_airport_filter.length; ++j)
+                if (_airport_filter[j].indexOf(d.AIRPORT) != -1) return true;
+            return false;
+    });
+
+    }
+
+    this.sortAirports(_sort_by);
 
 }
 
 
 /**
- * The aggregate function that creates the counts for each age for a given filter.
- * @param _filter - A filter can be, e.g.,  a function that is only true for data of a given time range
- * @returns {Array|*}
+ * Filter the airports by State
  */
-BarVis.prototype.filterAndAggregate = function(_state_filter, _sortby){
+BarVis.prototype.filterByState = function(_state_filter, _sort_by){
 
-    // Set filter to a function that accepts all items
-    // ONLY if the parameter _filter is NOT null use this parameter
-    /*var filter = function(){return true;}
-    if (_filter != null){
-        filter = _filter;
+    if (this.airport_filter == "all"){
+        if (_state_filter == "all"){
+            this.displayData = this.data;
+        }
+        else {
+            this.displayData = this.data.filter(function (d) {
+                return d.AIRPORT_STATE_NM == _state_filter;
+            });
+        }
     }
-    */
-    //Dear JS hipster, a more hip variant of this construct would be:
-    // var filter = _filter || function(){return true;}
-
-    var that = this;
-
-    var _data = that.data;
-
-    if (_state_filter != "all"){
-        _data = _data.filter(function(d){return d.AIRPORT_STATE_NM == _state_filter; })
+    else{
+        this.filterByAirport(this.airport_filter, _sort_by);
+        if (_state_filter != "all"){
+            this.displayData = this.displayData.filter(function (d) {
+                return d.AIRPORT_STATE_NM == _state_filter;
+            });
+        }
     }
 
-    // _sortby: 0: name, 1: dep_delay asc, 2: dep_delay desc, 3: arr_delay asc, 4: arr_delay desc
-    return _data.sort(function(a, b){
+    this.sortAirports(_sort_by);
+}
+
+
+/**
+ * Sort the airports
+ */
+BarVis.prototype.sortAirports = function(_sortby){
+
+    // _sortby: 0: name, 1: dep_delay asc, 2: dep_delay desc, 3: arr_delay asc, 4: arr_delay desc, 5: fl_volume desc
+    this.displayData.sort(function(a, b){
         if (_sortby == 0){
             return d3.ascending(a.AIRPORT, b.AIRPORT);
         }
@@ -241,6 +304,9 @@ BarVis.prototype.filterAndAggregate = function(_state_filter, _sortby){
         }
         else if (_sortby == 4){
             return d3.descending(a.ARR_DELAY, b.ARR_DELAY);
+        }
+        else if (_sortby == 5){
+            return d3.descending(a.FLIGHT_VOLUME, b.FLIGHT_VOLUME);
         }
     });
 
